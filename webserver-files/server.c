@@ -60,7 +60,7 @@ int dequeue_request(List* list ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond
 void* thread_job(){
     while(1){
         // like dequeue in tutorial
-        int socket_fd = dequeue_request(requests_queue, mutex_request, cond_request);
+        int socket_fd = dequeue_request(requests_queue, &mutex_request, &cond_request);
 
         // TODO: add and remove from the other list
         // like enqueue in tutorial
@@ -75,10 +75,10 @@ void* thread_job(){
 void init_args(){
     requests_queue = create_list();
     handled_queue = create_list();
-    pthread_mutex_init(mutex_request, NULL);
-    pthread_mutex_init(mutex_handled, NULL);
-    pthread_cond_init(cond_request, NULL);
-    pthread_cond_init(cond_handled, NULL);
+    pthread_mutex_init(&mutex_request, NULL);
+    pthread_mutex_init(&mutex_handled, NULL);
+    pthread_cond_init(&cond_request, NULL);
+    pthread_cond_init(&cond_handled, NULL);
 }
 
 int create_threads(int num_threads){

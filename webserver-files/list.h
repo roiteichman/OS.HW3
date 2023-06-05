@@ -50,7 +50,7 @@ void add_to_list(List* list, int data) {
 int remove_first(List* list) {
     assert(list->size>0);
     if (list->size == 0) {
-        return NULL;
+        return -1;
     }
     Node* node_to_remove = list->first;
     int data = node_to_remove->data;
