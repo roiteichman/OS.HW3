@@ -6,8 +6,6 @@ set(CMAKE_C_STANDARD 11)
 include_directories(webserver-files)
 
 add_executable(OS_HW3
-        webserver-files/client.c
-        webserver-files/output.c
         webserver-files/request.c
         webserver-files/request.h
         webserver-files/segel.c
