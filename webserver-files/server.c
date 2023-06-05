@@ -24,9 +24,8 @@ void getargs(int *port, int argc, char *argv[])
 
 int requests_queue[3];
 
-void thread_job(){
+void* thread_job(){
     requestHandle(requests_queue[0]);
-    return;
 };
 
 
