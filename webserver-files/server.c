@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     char* schedalg;
     struct sockaddr_in clientaddr;
 
-    getargs(argc, argv, &port, &num_threads, &queue_size, &schedalg, &max_size);
+    getargs(argc, argv, &port, &num_threads, &queue_size, schedalg, &max_size);
 
     // 
     // HW3: Create some threads...
