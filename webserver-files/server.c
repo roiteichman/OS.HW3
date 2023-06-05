@@ -26,6 +26,7 @@ int requests_queue[3];
 
 void* thread_job(){
     requestHandle(requests_queue[0]);
+    return NULL;
 }
 
 
