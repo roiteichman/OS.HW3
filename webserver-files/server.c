@@ -13,13 +13,20 @@
 //
 
 // HW3: Parse the new arguments too
-void getargs(int *port, int argc, char *argv[])
+void getargs(int argc, char *argv[], int *port, int* threads, int* queue_size, char* schedalg, int* max_size)
 {
-    if (argc < 2) {
+    if (argc < 5) {
 	fprintf(stderr, "Usage: %s <port>\n", argv[0]);
+    // TODO: what to print here in error handling
 	exit(1);
     }
     *port = atoi(argv[1]);
+    *threads = atoi(argv[2]);
+    *queue_size = atoi(argv[3]);
+    strcpy(schedalg,argv[4]);
+    if (argc==6 && strcmp(argv[4], "dynamic")==0 ){
+        *queue_size = atoi(argv[5]);
+    }
 }
 
 int requests_queue[3];
@@ -32,10 +39,11 @@ void* thread_job(){
 
 int main(int argc, char *argv[])
 {
-    int listenfd, connfd, port, clientlen;
+    int listenfd, connfd, port, clientlen, num_threads, queue_size, max_size;
+    char* schedalg;
     struct sockaddr_in clientaddr;
 
-    getargs(&port, argc, argv);
+    getargs(argc, argv, &port, &num_threads, &queue_size, &schedalg, &max_size);
 
     // 
     // HW3: Create some threads...
