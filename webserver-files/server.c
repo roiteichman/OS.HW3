@@ -46,9 +46,9 @@ int main(int argc, char *argv[])
 	connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen);
 
     requests_queue[0]=connfd;
-    pthread_t* t1;
-    pthread_create(t1, NULL, thread_job, NULL);
-    pthread_join(*t1, NULL);
+    pthread_t t1;
+    pthread_create(&t1, NULL, thread_job, NULL);
+    pthread_join(t1, NULL);
 
 	// 
 	// HW3: In general, don't handle the request in the main thread.
