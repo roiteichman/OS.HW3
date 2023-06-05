@@ -1,5 +1,6 @@
 #include "segel.h"
 #include "request.h"
+#include "list.h"
 
 // 
 // server.c: A very, very simple web server
@@ -21,6 +22,13 @@ void getargs(int *port, int argc, char *argv[])
     *port = atoi(argv[1]);
 }
 
+int requests_queue[3];
+
+void thread_job(){
+    requestHandle(requests_queue[0]);
+    return;
+};
+
 
 int main(int argc, char *argv[])
 {
@@ -38,12 +46,18 @@ int main(int argc, char *argv[])
 	clientlen = sizeof(clientaddr);
 	connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen);
 
+    requests_queue[0]=connfd;
+    pthread_t* t1;
+    pthread_create(t1, NULL, thread_job, NULL);
+    pthread_join(*t1, NULL);
+
 	// 
 	// HW3: In general, don't handle the request in the main thread.
 	// Save the relevant info in a buffer and have one of the worker threads 
 	// do the work. 
 	// 
-	requestHandle(connfd);
+
+    //requestHandle(connfd);
 
 	Close(connfd);
     }
