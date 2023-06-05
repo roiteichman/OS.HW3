@@ -2,6 +2,8 @@
 #include "request.h"
 #include "list.h"
 
+#define SCHEDALG_MAX_SIZE 8
+
 // 
 // server.c: A very, very simple web server
 //
@@ -40,7 +42,7 @@ void* thread_job(){
 int main(int argc, char *argv[])
 {
     int listenfd, connfd, port, clientlen, num_threads, queue_size, max_size;
-    char* schedalg;
+    char schedalg[SCHEDALG_MAX_SIZE];
     struct sockaddr_in clientaddr;
 
     getargs(argc, argv, &port, &num_threads, &queue_size, schedalg, &max_size);
