@@ -10,7 +10,8 @@ pthread_mutex_t mutex_request;
 pthread_mutex_t mutex_handled;
 pthread_cond_t cond_request;
 pthread_cond_t cond_handled;
-
+int handled_requests = 0;
+// TODO: enum overloading handling names
 
 // 
 // server.c: A very, very simple web server
@@ -37,21 +38,30 @@ void getargs(int argc, char *argv[], int *port, int* threads, int* queue_size, c
     if (argc==6 && strcmp(argv[4], "dynamic")==0 ){
         *queue_size = atoi(argv[5]);
     }
+
+    // TODO: change the strcpy to the enum
 }
 
 void enqueue_request(List* list, int request ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond){
     pthread_mutex_lock(p_mutex);
+
     add_to_list(list, request);
     pthread_cond_signal(p_cond);
+
     pthread_mutex_unlock(p_mutex);
 }
 
 int dequeue_request(List* list ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond){
     pthread_mutex_lock(p_mutex);
+
     while (list->size==0){
         pthread_cond_wait(p_cond, p_mutex);
     }
     int socket_fd = remove_first(list);
+
+    // TODO: if the dequeue made by father (drop_haed) so ignore that ++; means need another args for this function;
+    handled_requests++;
+
     pthread_mutex_unlock(p_mutex);
 
     return socket_fd;
@@ -61,12 +71,16 @@ void* thread_job(){
     while(1){
         // like dequeue in tutorial
         int socket_fd = dequeue_request(requests_queue, &mutex_request, &cond_request);
+        // TODO: ++counter; add a counter of HTTP request that  handle right now for count that we are not having more then legal
+
 
         // TODO: add and remove from the other list
         // like enqueue in tutorial
         //add_to_list(handled_queue ,socket_fd);
 
         requestHandle(socket_fd);
+        // TODO: --counter; in function. after handle the request we can enter new one to the server if it was full.
+        // TODO: do we need to put mmutex on close because after a lot of request we get Rio_readlineb error and one of the options is the open and close mechanism
         Close(socket_fd);
     }
     return NULL;
@@ -94,6 +108,13 @@ int create_threads(int num_threads){
 }
 
 
+// TODO: block with new cond (in same mutex), when thread finsh handle request, signal for the cond, inside the function that --counter;
+// TODO: drop_tail - close the new fd that created in accept, give the function the fd of request
+// TODO: drop_head - do dequeue to the list
+// TODO: block_fluse - like block maybe another cond for empty list;
+
+
+
 
 
 int main(int argc, char *argv[])
@@ -101,7 +122,10 @@ int main(int argc, char *argv[])
     init_args();
 
     int listenfd, connfd, port, clientlen, num_threads, queue_size, max_size;
+
+    // TODO: change to enum == int
     char schedalg[SCHEDALG_MAX_SIZE];
+
     struct sockaddr_in clientaddr;
 
     getargs(argc, argv, &port, &num_threads, &queue_size, schedalg, &max_size);
@@ -116,8 +140,15 @@ int main(int argc, char *argv[])
         clientlen = sizeof(clientaddr);
         connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen);
 
+        //TODO: check sum with mutex
+
+        // TODO: if sum >= enqueue - Overload handling function with switch case
+        // TODO: continue to enqueue or start loop again without enter the list
+
+        // TODO:
         // like enqueue in tutorial
         enqueue_request(requests_queue, connfd, &mutex_request, &cond_request);
+
 
         /*pthread_t t1;
         pthread_create(&t1, NULL, thread_job, NULL);
