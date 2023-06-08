@@ -2,16 +2,17 @@
 #include "request.h"
 #include "list.h"
 
-#define SCHEDALG_MAX_SIZE 8
 
 List* requests_queue = NULL;
-List* handled_queue = NULL;
+//List* handled_queue = NULL;
 pthread_mutex_t mutex_request;
 pthread_mutex_t mutex_handled;
 pthread_cond_t cond_request;
 pthread_cond_t cond_handled;
 int handled_requests = 0;
-// TODO: enum overloading handling names
+
+typedef enum  {BLOCK, DROP_TAIL, DROP_HEAD,
+               BLOCK_FLUSH, DYNAMIC, DROP_RANDOM} OVERLOAD_HADLE;
 
 // 
 // server.c: A very, very simple web server
@@ -24,23 +25,54 @@ int handled_requests = 0;
 //
 
 // HW3: Parse the new arguments too
-void getargs(int argc, char *argv[], int *port, int* threads, int* queue_size, char* schedalg, int* max_size)
+
+/*---------------------
+ init functions:
+ ----------------------*/
+
+void init_args(){
+    requests_queue = create_list();
+    //handled_queue = create_list();
+    pthread_mutex_init(&mutex_request, NULL);
+    pthread_mutex_init(&mutex_handled, NULL);
+    pthread_cond_init(&cond_request, NULL);
+    pthread_cond_init(&cond_handled, NULL);
+}
+
+void init_schedalg(char* input_string, OVERLOAD_HADLE* schedalg) {
+    if (strcmp(input_string, "block")==0) *schedalg = BLOCK;
+    else if (strcmp(input_string, "drop_tail")==0) *schedalg = DROP_TAIL;
+    else if (strcmp(input_string, "drop_head")==0) *schedalg = DROP_HEAD;
+    else if (strcmp(input_string, "block_flush")==0) *schedalg = BLOCK_FLUSH;
+    else if (strcmp(input_string, "Dynamic")==0) *schedalg = DYNAMIC;
+    else if (strcmp(input_string, "drop_random")==0) *schedalg = DROP_RANDOM;
+    else {
+#ifdef DEBUG_PRINT
+        printf("invalid schedalg!\n");
+#endif
+    }
+}
+
+void getargs(int argc, char *argv[], int *port, int* threads, int* queue_size, OVERLOAD_HADLE* schedalg, int* max_size)
 {
     if (argc < 5) {
-	fprintf(stderr, "Usage: %s <port>\n", argv[0]);
-    // TODO: what to print here in error handling
-	exit(1);
+	    fprintf(stderr, "Usage: %s <port>\n", argv[0]);
+        // TODO: what to print here in error handling
+	    exit(1);
     }
     *port = atoi(argv[1]);
     *threads = atoi(argv[2]);
     *queue_size = atoi(argv[3]);
-    strcpy(schedalg,argv[4]);
-    if (argc==6 && strcmp(argv[4], "dynamic")==0 ){
+    init_schedalg(argv[4], schedalg);
+    if (argc==6 && *schedalg == DYNAMIC) {
         *queue_size = atoi(argv[5]);
     }
-
-    // TODO: change the strcpy to the enum
 }
+
+/*--------------------------------------------
+ queue functions:
+---------------------------------------------*/
+
 
 void enqueue_request(List* list, int request ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond){
     pthread_mutex_lock(p_mutex);
@@ -51,7 +83,7 @@ void enqueue_request(List* list, int request ,pthread_mutex_t* p_mutex, pthread_
     pthread_mutex_unlock(p_mutex);
 }
 
-int dequeue_request(List* list ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond){
+int dequeue_request(List* list ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond, int is_main_thread){
     pthread_mutex_lock(p_mutex);
 
     while (list->size==0){
@@ -59,43 +91,43 @@ int dequeue_request(List* list ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond
     }
     int socket_fd = remove_first(list);
 
-    // TODO: if the dequeue made by father (drop_haed) so ignore that ++; means need another args for this function;
-    handled_requests++;
+    if ( !is_main_thread ) handled_requests++;
 
     pthread_mutex_unlock(p_mutex);
 
     return socket_fd;
 }
 
+void dec_counter() {
+    pthread_mutex_lock(&mutex_request);
+    handled_requests--;
+    pthread_cond_signal(&cond_handled);
+    pthread_mutex_unlock(&mutex_request);
+}
+
+/*-----------------------------------
+ thread function:
+ -----------------------------------*/
+
 void* thread_job(){
     while(1){
         // like dequeue in tutorial
-        int socket_fd = dequeue_request(requests_queue, &mutex_request, &cond_request);
-        // TODO: ++counter; add a counter of HTTP request that  handle right now for count that we are not having more then legal
+        int socket_fd = dequeue_request(requests_queue, &mutex_request, &cond_request, 0);
 
-
-        // TODO: add and remove from the other list
+        // TODO: add and remove from the other list?
         // like enqueue in tutorial
         //add_to_list(handled_queue ,socket_fd);
 
         requestHandle(socket_fd);
-        // TODO: --counter; in function. after handle the request we can enter new one to the server if it was full.
-        // TODO: do we need to put mmutex on close because after a lot of request we get Rio_readlineb error and one of the options is the open and close mechanism
+        dec_counter();
+        // TODO: do we need to put mutex on close because after a lot of request we get Rio_readlineb error and one of the options is the open and close mechanism
         Close(socket_fd);
     }
     return NULL;
 }
 
-void init_args(){
-    requests_queue = create_list();
-    handled_queue = create_list();
-    pthread_mutex_init(&mutex_request, NULL);
-    pthread_mutex_init(&mutex_handled, NULL);
-    pthread_cond_init(&cond_request, NULL);
-    pthread_cond_init(&cond_handled, NULL);
-}
 
-int create_threads(int num_threads){
+int create_threads (int num_threads){
     pthread_t* threads = (pthread_t*) malloc(sizeof(pthread_t)*num_threads);
     if (threads==NULL){
         printf("allocation error\n");
@@ -108,27 +140,57 @@ int create_threads(int num_threads){
 }
 
 
+/*------------------------------------
+ overloadind handling:
+ ------------------------------------*/
+
+int fictive_handler(){return 0;}
+
+int overload_hadler(OVERLOAD_HADLE handle_type) {
+    //TODO: call the matching functions (and add cases)
+    switch (handle_type) {
+        case BLOCK: return fictive_handler();
+        case DROP_TAIL: return fictive_handler();
+
+        default: {
+#ifdef DEBUG_PRINT
+            printf("invalid handle_type!\n");
+#endif
+            return -1;
+        }
+    }
+}
+
+// if we have to skip the current request, return 1. if we have to handle it after the overloading handle, return 0.
 // TODO: block with new cond (in same mutex), when thread finsh handle request, signal for the cond, inside the function that --counter;
 // TODO: drop_tail - close the new fd that created in accept, give the function the fd of request
 // TODO: drop_head - do dequeue to the list
 // TODO: block_fluse - like block maybe another cond for empty list;
 
+int get_requests_num() {
+    int res = 0;
+    pthread_mutex_lock(&mutex_request);
+    res += requests_queue->size;
+    res += handled_requests;
+    pthread_mutex_unlock(&mutex_request);
+    return res;
+}
 
 
-
+/*------------------------------------------------------------------------------
+ main program:
+ ------------------------------------------------------------------------------*/
 
 int main(int argc, char *argv[])
 {
     init_args();
 
     int listenfd, connfd, port, clientlen, num_threads, queue_size, max_size;
-
-    // TODO: change to enum == int
-    char schedalg[SCHEDALG_MAX_SIZE];
+    OVERLOAD_HADLE schedalg;
 
     struct sockaddr_in clientaddr;
 
-    getargs(argc, argv, &port, &num_threads, &queue_size, schedalg, &max_size);
+    getargs(argc, argv, &port, &num_threads, &queue_size, &schedalg, &max_size);
 
     if (create_threads(num_threads) == -1){
         return -1;
@@ -140,31 +202,18 @@ int main(int argc, char *argv[])
         clientlen = sizeof(clientaddr);
         connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen);
 
-        //TODO: check sum with mutex
+        int requests_sum = get_requests_num();
 
-        // TODO: if sum >= enqueue - Overload handling function with switch case
-        // TODO: continue to enqueue or start loop again without enter the list
+        if (requests_sum >= queue_size) {
+            // handle overloading and check if skip or do the request:
+            if (overload_hadler(schedalg)==0) {
+                continue;
+            }
+        }
 
-        // TODO:
         // like enqueue in tutorial
         enqueue_request(requests_queue, connfd, &mutex_request, &cond_request);
-
-
-        /*pthread_t t1;
-        pthread_create(&t1, NULL, thread_job, NULL);
-        pthread_join(t1, NULL);*/
-
-        //
-        // HW3: In general, don't handle the request in the main thread.
-        // Save the relevant info in a buffer and have one of the worker threads
-        // do the work.
-        //
-
-        //requestHandle(connfd);
-
-        //Close(connfd);
     }
-
     //don't need to free because run forever
 }
 

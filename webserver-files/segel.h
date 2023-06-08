@@ -25,9 +25,9 @@
 #include <arpa/inet.h>
 
 
-// TODO: delete asserts
+// TODO: delete asserts and remove define
 #include <assert.h>
-
+#define DEBUG_PRINT
 
 /* Default file permissions are DEF_MODE & ~DEF_UMASK */
 /* $begin createmasks */
