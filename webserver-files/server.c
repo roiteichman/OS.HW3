@@ -12,7 +12,7 @@ pthread_cond_t cond_handled;
 int handled_requests = 0;
 
 typedef enum  {BLOCK, DROP_TAIL, DROP_HEAD,
-               BLOCK_FLUSH, DYNAMIC, DROP_RANDOM} OVERLOAD_HADLE;
+               BLOCK_FLUSH, DYNAMIC, DROP_RANDOM} OVERLOAD_HANDLE;
 
 // 
 // server.c: A very, very simple web server
@@ -39,13 +39,13 @@ void init_args(){
     pthread_cond_init(&cond_handled, NULL);
 }
 
-void init_schedalg(char* input_string, OVERLOAD_HADLE* schedalg) {
+void init_schedalg(char* input_string, OVERLOAD_HANDLE* schedalg) {
     if (strcmp(input_string, "block")==0) *schedalg = BLOCK;
-    else if (strcmp(input_string, "drop_tail")==0) *schedalg = DROP_TAIL;
-    else if (strcmp(input_string, "drop_head")==0) *schedalg = DROP_HEAD;
-    else if (strcmp(input_string, "block_flush")==0) *schedalg = BLOCK_FLUSH;
-    else if (strcmp(input_string, "Dynamic")==0) *schedalg = DYNAMIC;
-    else if (strcmp(input_string, "drop_random")==0) *schedalg = DROP_RANDOM;
+    else if (strcmp(input_string, "dt")==0) *schedalg = DROP_TAIL;
+    else if (strcmp(input_string, "dh")==0) *schedalg = DROP_HEAD;
+    else if (strcmp(input_string, "bf")==0) *schedalg = BLOCK_FLUSH;
+    else if (strcmp(input_string, "dynamic")==0) *schedalg = DYNAMIC;
+    else if (strcmp(input_string, "random")==0) *schedalg = DROP_RANDOM;
     else {
 #ifdef DEBUG_PRINT
         printf("invalid schedalg!\n");
@@ -53,7 +53,7 @@ void init_schedalg(char* input_string, OVERLOAD_HADLE* schedalg) {
     }
 }
 
-void getargs(int argc, char *argv[], int *port, int* threads, int* queue_size, OVERLOAD_HADLE* schedalg, int* max_size)
+void getargs(int argc, char *argv[], int *port, int* threads, int* queue_size, OVERLOAD_HANDLE* schedalg, int* max_size)
 {
     if (argc < 5) {
 	    fprintf(stderr, "Usage: %s <port>\n", argv[0]);
@@ -146,7 +146,7 @@ int create_threads (int num_threads){
 
 int fictive_handler(){return 0;}
 
-int overload_hadler(OVERLOAD_HADLE handle_type) {
+int overload_hadler(OVERLOAD_HANDLE handle_type) {
     //TODO: call the matching functions (and add cases)
     switch (handle_type) {
         case BLOCK: return fictive_handler();
@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
     init_args();
 
     int listenfd, connfd, port, clientlen, num_threads, queue_size, max_size;
-    OVERLOAD_HADLE schedalg;
+    OVERLOAD_HANDLE schedalg;
 
     struct sockaddr_in clientaddr;
 
