@@ -127,6 +127,7 @@ void show_statistic(int id, int static_counter, int dynamic_counter, int total_c
 
 void* thread_job(void* thread_id){
     int id = *(int*)thread_id; //TODO: check if need to change to pid or thread_id because thread_id here is pointer to temporary variable
+    id = pthread_self();
     int static_counter = 0;
     int dynamic_counter = 0;
     int total_counter = 0;
