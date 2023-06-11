@@ -105,9 +105,7 @@ void dec_counter(List* list) {
     handled_requests--;
 
     //TODO: make here if size == full or send everytime?
-    //if (list->size+handled_requests+1 >= queue_size){
-        pthread_cond_signal(&cond_list_full);
-    //}
+    pthread_cond_signal(&cond_list_full);
 
     //pthread_cond_signal(&cond_handled);
     pthread_mutex_unlock(&mutex_request);
@@ -201,10 +199,23 @@ int block_handler(List* list, int queue_size){
     return 0;
 }
 
+int block_flush_handler(List* list){
+    // lock the mutex
+    pthread_mutex_lock(&mutex_request);
+    // enter the main thread to wait by cond_wait
+    while (list->size+handled_requests>0){
+        pthread_cond_wait(&cond_list_full, &mutex_request);
+    }
+    pthread_mutex_unlock(&mutex_request);
+
+    return 0;
+}
+
 int overload_handler(OVERLOAD_HANDLE handle_type, List* list, int queue_size, int max_size) {
     //TODO: call the matching functions (and add cases)
     switch (handle_type) {
         case BLOCK: return block_handler(list, queue_size);
+        case BLOCK_FLUSH: return block_flush_handler(list);
         case DROP_TAIL: return fictive_handler();
 
         default: {
@@ -223,8 +234,10 @@ int overload_handler(OVERLOAD_HANDLE handle_type, List* list, int queue_size, in
 // TODO: drop_tail - close the new fd that created in accept, give the function the fd of request
 // TODO: drop_head - do dequeue to the list
 // TODO: block_fluse - like block maybe another cond for empty list;
+// TODO: Dynamic - increase queue_size by 1 until become equal to max_size, then assignment of dynamic to drop_tail and call the handler again in this specific case
 
 
+// TODO: check if lonely request in queue - edge case
 
 /*------------------------------------------------------------------------------
  main program:
