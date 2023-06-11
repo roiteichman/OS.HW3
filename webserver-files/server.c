@@ -118,15 +118,15 @@ void dec_counter(List* list) {
 void show_statistic(int id, int static_counter, int dynamic_counter, int total_counter, int fd){
     char buf[MAXBUF];
     sprintf(buf, "Stat-Thread-Id:: %d\r\n", id);
-    sprintf(buf, "Stat-Thread-Count:: %d\r\n", total_counter);
-    sprintf(buf, "Stat-Thread-Static:: %d\r\n", static_counter);
-    sprintf(buf, "Stat-Thread-Dynamic:: %d\r\n", dynamic_counter);
+    sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf ,total_counter);
+    sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, static_counter);
+    sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n", buf, dynamic_counter);
     Rio_writen(fd, buf, strlen(buf));
 }
 
 
 void* thread_job(void* thread_id){
-    int id = *(int*)thread_id;
+    int id = *(int*)thread_id; //TODO: check if need to change to pid or thread_id because thread_id here is pointer to temporary variable
     int static_counter = 0;
     int dynamic_counter = 0;
     int total_counter = 0;
