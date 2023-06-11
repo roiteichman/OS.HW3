@@ -115,10 +115,25 @@ void dec_counter(List* list) {
  thread function:
  -----------------------------------*/
 
-void* thread_job(){
+void show_statistic(int id, int static_counter, int dynamic_counter, int total_counter, int fd){
+    char buf[MAXBUF];
+    sprintf(buf, "Stat-Thread-Id:: %d\r\n", id);
+    sprintf(buf, "Stat-Thread-Count:: %d\r\n", total_counter);
+    sprintf(buf, "Stat-Thread-Static:: %d\r\n", static_counter);
+    sprintf(buf, "Stat-Thread-Dynamic:: %d\r\n", dynamic_counter);
+    Rio_writen(fd, buf, strlen(buf));
+}
+
+
+void* thread_job(int* thread_id){
+    int id = *thread_id;
+    int static_counter = 0;
+    int dynamic_counter = 0;
+    int total_counter = 0;
     while(1){
         // like dequeue in tutorial
         int socket_fd = dequeue_request(requests_queue, &mutex_request, &cond_request, 0);
+        total_counter++;
 
         // TODO: add and remove from the other list?
         // like enqueue in tutorial
@@ -126,6 +141,10 @@ void* thread_job(){
 
         requestHandle(socket_fd);
         dec_counter(requests_queue);
+
+        // statistics:
+        show_statistic(id, static_counter, dynamic_counter, total_counter, socket_fd);
+
         // TODO: do we need to put mutex on close because after a lot of request we get Rio_readlineb error and one of the options is the open and close mechanism
         Close(socket_fd);
     }
@@ -140,7 +159,7 @@ int create_threads (int num_threads){
         return -1;
     }
     for (int i = 0; i < num_threads; ++i) {
-        pthread_create(&threads[i], NULL, thread_job, NULL);
+        pthread_create(&threads[i], NULL, thread_job, &i);
     }
     return 0;
 }
@@ -283,6 +302,6 @@ int main(int argc, char *argv[])
 
 
     
-
+// TODO: check systems calls if fails
 
  
