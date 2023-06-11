@@ -100,14 +100,16 @@ int dequeue_request(List* list ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond
     return socket_fd;
 }
 
-void dec_counter() {
+void dec_counter(List* list, int queue_size) {
     pthread_mutex_lock(&mutex_request);
     handled_requests--;
 
     //TODO: ask elchanan if it should be the cond_list_full or we need them both + make here if size == full or send everytime?
-    //pthread_cond_signal(&cond_list_full);
+    if (list->size+handled_requests+1 >= queue_size){
+        pthread_cond_signal(&cond_list_full);
+    }
 
-    pthread_cond_signal(&cond_handled);
+    //pthread_cond_signal(&cond_handled);
     pthread_mutex_unlock(&mutex_request);
 }
 
@@ -115,7 +117,7 @@ void dec_counter() {
  thread function:
  -----------------------------------*/
 
-void* thread_job(){
+void* thread_job(int queue_size){
     while(1){
         // like dequeue in tutorial
         int socket_fd = dequeue_request(requests_queue, &mutex_request, &cond_request, 0);
@@ -125,7 +127,7 @@ void* thread_job(){
         //add_to_list(handled_queue ,socket_fd);
 
         requestHandle(socket_fd);
-        dec_counter();
+        dec_counter(requests_queue, queue_size);
         // TODO: do we need to put mutex on close because after a lot of request we get Rio_readlineb error and one of the options is the open and close mechanism
         Close(socket_fd);
     }
@@ -133,14 +135,14 @@ void* thread_job(){
 }
 
 
-int create_threads (int num_threads){
+int create_threads (int num_threads, int queue_size){
     pthread_t* threads = (pthread_t*) malloc(sizeof(pthread_t)*num_threads);
     if (threads==NULL){
         printf("allocation error\n");
         return -1;
     }
     for (int i = 0; i < num_threads; ++i) {
-        pthread_create(&threads[i], NULL, thread_job, NULL);
+        pthread_create(&threads[i], NULL, thread_job, queue_size);
     }
     return 0;
 }
@@ -192,7 +194,7 @@ int block_handler(List* list, int queue_size){
     pthread_mutex_lock(&mutex_request);
     // enter the main thread to wait by cond_wait
     while (list->size+handled_requests>=queue_size){
-        pthread_cond_wait(&cond_request, &mutex_request);
+        pthread_cond_wait(&cond_list_full, &mutex_request);
     }
     pthread_mutex_unlock(&mutex_request);
 
@@ -240,7 +242,7 @@ int main(int argc, char *argv[])
 
     getargs(argc, argv, &port, &num_threads, &queue_size, &schedalg, &max_size);
 
-    if (create_threads(num_threads) == -1){
+    if (create_threads(num_threads, queue_size) == -1){
         return -1;
     }
 
