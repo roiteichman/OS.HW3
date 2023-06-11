@@ -227,7 +227,7 @@ int block_flush_handler(List* list){
     }
     pthread_mutex_unlock(&mutex_request);
 
-    return 0;
+    return 1;
 }
 
 int overload_handler(OVERLOAD_HANDLE handle_type, List* list, int queue_size, int max_size) {
