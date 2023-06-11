@@ -196,7 +196,7 @@ int block_handler(List* list, int queue_size){
     }
     pthread_mutex_unlock(&mutex_request);
 
-    printf("hi\n");
+    printf("hi2\n");
     return 0;
 }
 
@@ -253,6 +253,8 @@ int main(int argc, char *argv[])
         int requests_sum = get_requests_num();
 
         if (requests_sum >= queue_size) {
+            printf("hi\n");
+
             // handle overloading and check if skip or do the request:
             if (overload_handler(schedalg, requests_queue ,queue_size, max_size) == 0) {
                 continue;
