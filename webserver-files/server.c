@@ -105,9 +105,9 @@ void dec_counter() {
     handled_requests--;
 
     //TODO: ask elchanan if it should be the cond_list_full or we need them both + make here if size == full or send everytime?
-    pthread_cond_signal(&cond_list_full);
+    //pthread_cond_signal(&cond_list_full);
 
-    //pthread_cond_signal(&cond_handled);
+    pthread_cond_signal(&cond_handled);
     pthread_mutex_unlock(&mutex_request);
 }
 
@@ -192,7 +192,7 @@ int block_handler(List* list, int queue_size){
     pthread_mutex_lock(&mutex_request);
     // enter the main thread to wait by cond_wait
     while (list->size+handled_requests>=queue_size){
-        pthread_cond_wait(&cond_list_full, &mutex_request);
+        pthread_cond_wait(&cond_request, &mutex_request);
     }
     pthread_mutex_unlock(&mutex_request);
 
