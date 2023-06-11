@@ -125,8 +125,8 @@ void show_statistic(int id, int static_counter, int dynamic_counter, int total_c
 }
 
 
-void* thread_job(int* thread_id){
-    int id = *thread_id;
+void* thread_job(void* thread_id){
+    int id = *(int*)thread_id;
     int static_counter = 0;
     int dynamic_counter = 0;
     int total_counter = 0;
