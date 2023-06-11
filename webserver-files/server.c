@@ -195,6 +195,8 @@ int block_handler(List* list, int queue_size){
         pthread_cond_wait(&cond_list_full, &mutex_request);
     }
     pthread_mutex_unlock(&mutex_request);
+
+    printf("hi\n");
     return 0;
 }
 
