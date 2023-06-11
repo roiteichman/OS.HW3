@@ -126,7 +126,7 @@ void show_statistic(int id, int static_counter, int dynamic_counter, int total_c
 
 
 void* thread_job(void* thread_id){
-    int id = (int) thread_id; //TODO: check if need to change to pid or thread_id because thread_id here is pointer to temporary variable
+    long id = (long) thread_id; //TODO: check if need to change to pid or thread_id because thread_id here is pointer to temporary variable
     int static_counter = 0;
     int dynamic_counter = 0;
     int total_counter = 0;
@@ -158,7 +158,7 @@ int create_threads (int num_threads){
         printf("allocation error\n");
         return -1;
     }
-    for (int i = 0; i < num_threads; ++i) {
+    for (long i = 0; i < num_threads; ++i) {
         pthread_create(&threads[i], NULL, thread_job, (void *) i);
     }
     return 0;
