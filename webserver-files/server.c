@@ -107,7 +107,7 @@ void dec_counter() {
     //TODO: ask elchanan if it should be the cond_list_full or we need them both + make here if size == full or send everytime?
     pthread_cond_signal(&cond_list_full);
 
-    pthread_cond_signal(&cond_handled);
+    //pthread_cond_signal(&cond_handled);
     pthread_mutex_unlock(&mutex_request);
 }
 
