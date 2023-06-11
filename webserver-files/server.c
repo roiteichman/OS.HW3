@@ -100,7 +100,7 @@ int dequeue_request(List* list ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond
     return socket_fd;
 }
 
-void dec_counter(List* list, int queue_size) {
+void dec_counter(List* list) {
     pthread_mutex_lock(&mutex_request);
     handled_requests--;
 
