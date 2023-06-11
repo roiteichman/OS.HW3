@@ -126,9 +126,6 @@ void* thread_job(){
 
         requestHandle(socket_fd);
         dec_counter(requests_queue);
-
-        printf("\nstop\n\n");
-
         // TODO: do we need to put mutex on close because after a lot of request we get Rio_readlineb error and one of the options is the open and close mechanism
         Close(socket_fd);
     }
@@ -209,8 +206,6 @@ int block_flush_handler(List* list){
     while (list->size+handled_requests>0){
         pthread_cond_wait(&cond_list_full, &mutex_request);
     }
-    printf("\nwake-up\n\n");
-
     pthread_mutex_unlock(&mutex_request);
 
     return 0;
@@ -280,7 +275,7 @@ int main(int argc, char *argv[])
         }
 
         // like enqueue in tutorial
-        printf("\nstart\n\n");
+
         enqueue_request(requests_queue, connfd, &mutex_request, &cond_request);
     }
     //don't need to free because run forever
