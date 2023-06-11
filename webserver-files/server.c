@@ -9,6 +9,7 @@ pthread_mutex_t mutex_request;
 pthread_mutex_t mutex_handled;
 pthread_cond_t cond_request;
 pthread_cond_t cond_handled;
+pthread_cond_t cond_list_full;
 int handled_requests = 0;
 
 typedef enum  {BLOCK, DROP_TAIL, DROP_HEAD,
@@ -37,6 +38,7 @@ void init_args(){
     pthread_mutex_init(&mutex_handled, NULL);
     pthread_cond_init(&cond_request, NULL);
     pthread_cond_init(&cond_handled, NULL);
+    pthread_cond_init(&cond_list_full, NULL);
 }
 
 void init_schedalg(char* input_string, OVERLOAD_HANDLE* schedalg) {
@@ -101,6 +103,10 @@ int dequeue_request(List* list ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond
 void dec_counter() {
     pthread_mutex_lock(&mutex_request);
     handled_requests--;
+
+    //TODO: ask elchanan if it should be the cond_list_full or we need them both + make here if size == full or send everytime?
+    pthread_cond_signal(&cond_list_full);
+
     pthread_cond_signal(&cond_handled);
     pthread_mutex_unlock(&mutex_request);
 }
@@ -144,12 +150,58 @@ int create_threads (int num_threads){
  overloadind handling:
  ------------------------------------*/
 
+int get_requests_num() {
+    int res = 0;
+    pthread_mutex_lock(&mutex_request);
+    res += requests_queue->size;
+    res += handled_requests;
+    pthread_mutex_unlock(&mutex_request);
+    return res;
+}
+/*
+void enqueue_request(List* list, int request ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond){
+    pthread_mutex_lock(p_mutex);
+
+    add_to_list(list, request);
+    pthread_cond_signal(p_cond);
+
+    pthread_mutex_unlock(p_mutex);
+}
+
+int dequeue_request(List* list ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond, int is_main_thread){
+    pthread_mutex_lock(p_mutex);
+
+    while (list->size==0){
+        pthread_cond_wait(p_cond, p_mutex);
+    }
+    int socket_fd = remove_first(list);
+
+    if ( !is_main_thread ) handled_requests++;
+
+    pthread_mutex_unlock(p_mutex);
+
+    return socket_fd;
+}
+*/
+
+
 int fictive_handler(){return 0;}
 
-int overload_hadler(OVERLOAD_HANDLE handle_type) {
+int block_handler(List* list, int queue_size){
+    // lock the mutex
+    pthread_mutex_lock(&mutex_request);
+    // enter the main thread to wait by cond_wait
+    while (list->size+handled_requests>=queue_size){
+        pthread_cond_wait(&cond_list_full, &mutex_request);
+    }
+    pthread_mutex_unlock(&mutex_request);
+    return 0;
+}
+
+int overload_handler(OVERLOAD_HANDLE handle_type, List* list, int queue_size, int max_size) {
     //TODO: call the matching functions (and add cases)
     switch (handle_type) {
-        case BLOCK: return fictive_handler();
+        case BLOCK: return block_handler(list, queue_size);
         case DROP_TAIL: return fictive_handler();
 
         default: {
@@ -161,20 +213,14 @@ int overload_hadler(OVERLOAD_HANDLE handle_type) {
     }
 }
 
-// if we have to skip the current request, return 1. if we have to handle it after the overloading handle, return 0.
-// TODO: block with new cond (in same mutex), when thread finsh handle request, signal for the cond, inside the function that --counter;
+// if we have to skip the current request return 1.
+// if we have to handle it after the overloading handle, return 0.
+
+// TODO: block with new cond (in same mutex), when thread finish handle request, signal for the cond, inside the function that --counter;
 // TODO: drop_tail - close the new fd that created in accept, give the function the fd of request
 // TODO: drop_head - do dequeue to the list
 // TODO: block_fluse - like block maybe another cond for empty list;
 
-int get_requests_num() {
-    int res = 0;
-    pthread_mutex_lock(&mutex_request);
-    res += requests_queue->size;
-    res += handled_requests;
-    pthread_mutex_unlock(&mutex_request);
-    return res;
-}
 
 
 /*------------------------------------------------------------------------------
@@ -206,7 +252,7 @@ int main(int argc, char *argv[])
 
         if (requests_sum >= queue_size) {
             // handle overloading and check if skip or do the request:
-            if (overload_hadler(schedalg)==0) {
+            if (overload_handler(schedalg, requests_queue ,queue_size, max_size) == 0) {
                 continue;
             }
         }
