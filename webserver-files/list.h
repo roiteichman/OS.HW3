@@ -4,8 +4,6 @@
 #ifndef OS_HW3_LIST_H
 #define OS_HW3_LIST_H
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "segel.h"
 
 typedef struct node {

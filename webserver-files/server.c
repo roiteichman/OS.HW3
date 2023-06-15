@@ -1,9 +1,9 @@
 #include "segel.h"
 #include "request.h"
-#include "list.h"
+#include "Queue.h"
 
 
-List* requests_queue = NULL;
+Queue* requests_queue = NULL;
 //List* handled_queue = NULL;
 pthread_mutex_t mutex_request;
 pthread_mutex_t mutex_handled;
@@ -14,6 +14,7 @@ int handled_requests = 0;
 
 typedef enum  {BLOCK, DROP_TAIL, DROP_HEAD,
                BLOCK_FLUSH, DYNAMIC, DROP_RANDOM} OVERLOAD_HANDLE;
+
 
 // 
 // server.c: A very, very simple web server
@@ -32,7 +33,7 @@ typedef enum  {BLOCK, DROP_TAIL, DROP_HEAD,
  ----------------------*/
 
 void init_args(){
-    requests_queue = create_list();
+    requests_queue = create_Queue();
     //handled_queue = create_list();
     pthread_mutex_init(&mutex_request, NULL);
     pthread_mutex_init(&mutex_handled, NULL);
@@ -76,31 +77,31 @@ void getargs(int argc, char *argv[], int *port, int* threads, int* queue_size, O
 ---------------------------------------------*/
 
 
-void enqueue_request(List* list, int request ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond){
+void enqueue_request(Queue* queue, request req ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond){
     pthread_mutex_lock(p_mutex);
 
-    add_to_list(list, request);
+    add_to_Queue(queue, req);
     pthread_cond_signal(p_cond);
 
     pthread_mutex_unlock(p_mutex);
 }
 
-int dequeue_request(List* list ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond, int is_main_thread){
+request dequeue_request(Queue* queue ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond, int is_main_thread){
     pthread_mutex_lock(p_mutex);
 
-    while (list->size==0){
+    while (queue->size==0){
         pthread_cond_wait(p_cond, p_mutex);
     }
-    int socket_fd = remove_first(list);
+    request res = remove_first(queue);
 
     if ( !is_main_thread ) handled_requests++;
 
     pthread_mutex_unlock(p_mutex);
 
-    return socket_fd;
+    return res;
 }
 
-void dec_counter(List* list) {
+void dec_counter() {
     pthread_mutex_lock(&mutex_request);
     handled_requests--;
 
@@ -115,13 +116,13 @@ void dec_counter(List* list) {
  thread function:
  -----------------------------------*/
 
-void show_statistic(int id, int static_counter, int dynamic_counter, int total_counter, int fd){
+void show_statistic(int id, int static_counter, int dynamic_counter, int total_counter, request req){
     char buf[MAXBUF];
     sprintf(buf, "Stat-Thread-Id:: %d\r\n", id);
     sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf ,total_counter);
     sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, static_counter);
     sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n", buf, dynamic_counter);
-    Rio_writen(fd, buf, strlen(buf));
+    Rio_writen(req.fd, buf, strlen(buf));
 }
 
 
@@ -132,21 +133,21 @@ void* thread_job(void* thread_id){
     int total_counter = 0;
     while(1){
         // like dequeue in tutorial
-        int socket_fd = dequeue_request(requests_queue, &mutex_request, &cond_request, 0);
+        request curr_req = dequeue_request(requests_queue, &mutex_request, &cond_request, 0);
         total_counter++;
 
         // TODO: add and remove from the other list?
         // like enqueue in tutorial
         //add_to_list(handled_queue ,socket_fd);
 
-        requestHandle(socket_fd);
-        dec_counter(requests_queue);
+        requestHandle(curr_req.fd);
+        dec_counter();
 
         // statistics:
-        show_statistic(id, static_counter, dynamic_counter, total_counter, socket_fd);
+        show_statistic(id, static_counter, dynamic_counter, total_counter, curr_req);
 
         // TODO: do we need to put mutex on close because after a lot of request we get Rio_readlineb error and one of the options is the open and close mechanism
-        Close(socket_fd);
+        Close(curr_req.fd);
     }
     return NULL;
 }
@@ -206,11 +207,11 @@ int dequeue_request(List* list ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond
 
 int fictive_handler(){return 0;}
 
-int block_handler(List* list, int queue_size){
+int block_handler(Queue* queue, int queue_size){
     // lock the mutex
     pthread_mutex_lock(&mutex_request);
     // enter the main thread to wait by cond_wait
-    while (list->size+handled_requests>=queue_size){
+    while (queue->size + handled_requests >= queue_size){
         pthread_cond_wait(&cond_list_full, &mutex_request);
     }
     pthread_mutex_unlock(&mutex_request);
@@ -218,11 +219,11 @@ int block_handler(List* list, int queue_size){
     return 0;
 }
 
-int block_flush_handler(List* list){
+int block_flush_handler(Queue* queue){
     // lock the mutex
     pthread_mutex_lock(&mutex_request);
     // enter the main thread to wait by cond_wait
-    while (list->size+handled_requests>0){
+    while (queue->size + handled_requests > 0){
         pthread_cond_wait(&cond_list_full, &mutex_request);
     }
     pthread_mutex_unlock(&mutex_request);
@@ -230,11 +231,11 @@ int block_flush_handler(List* list){
     return 1;
 }
 
-int overload_handler(OVERLOAD_HANDLE handle_type, List* list, int queue_size, int max_size) {
+int overload_handler(OVERLOAD_HANDLE handle_type, Queue* queue, int queue_size, int max_size) {
     //TODO: call the matching functions (and add cases)
     switch (handle_type) {
-        case BLOCK: return block_handler(list, queue_size);
-        case BLOCK_FLUSH: return block_flush_handler(list);
+        case BLOCK: return block_handler(queue, queue_size);
+        case BLOCK_FLUSH: return block_flush_handler(queue);
         case DROP_TAIL: return fictive_handler();
 
         default: {
@@ -282,6 +283,12 @@ int main(int argc, char *argv[])
     while (1) {
         clientlen = sizeof(clientaddr);
         connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen);
+        struct timeval arrival;
+        if (gettimeofday(&arrival, NULL) == -1) {
+            // TODO: error format
+            perror("gettimeofday error:");
+        }
+        request curr_req = {connfd, arrival, arrival};
 
         int requests_sum = get_requests_num();
 
@@ -295,7 +302,7 @@ int main(int argc, char *argv[])
 
         // like enqueue in tutorial
 
-        enqueue_request(requests_queue, connfd, &mutex_request, &cond_request);
+        enqueue_request(requests_queue, curr_req, &mutex_request, &cond_request);
     }
     //don't need to free because run forever
 }

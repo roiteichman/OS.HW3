@@ -10,4 +10,4 @@ add_executable(OS_HW3
         webserver-files/request.h
         webserver-files/segel.c
         webserver-files/segel.h
-        webserver-files/server.c)
+        webserver-files/server.c webserver-files/Queue.h)
