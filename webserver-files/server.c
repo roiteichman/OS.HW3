@@ -266,11 +266,16 @@ int drop_tail(request curr){
 }
 int drop_head(Queue* queue){
     printf("\nhi_drop_head\n\n");
-    request r1 = dequeue_request(queue, &mutex_request, &cond_request, 1);
+    request r1 = dequeue_request(requests_queue, &mutex_request, &cond_request, 1);
     // pass 1 in is_main_thread because dont want to ++handle_requests counter because here just drop_head without handle it
-    if (r1.fd != queue->first->data.fd){
-        printf("\nsuccess_drop_head\n\n");
+
+    printf("\nafter_drop_head\n\n");
+    if  (queue->first!=NULL){
+        if (r1.fd != queue->first->data.fd){
+            printf("\nsuccess_drop_head\n\n");
+        }
     }
+
     return HANDLE_CURRENT;
 }
 
