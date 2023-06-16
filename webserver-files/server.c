@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include "segel.h"
 #include "request.h"
 #include "Queue.h"
@@ -260,11 +261,17 @@ int block_flush_handler(Queue* queue){
 }
 
 int drop_tail(request curr){
-    printf("\nhi_drop_tail\n\n");
     Close(curr.fd);
     return SKIP_CURRENT;
 }
-
+int drop_head(Queue* queue){
+    request r1 = dequeue_request(queue, &mutex_request, &cond_request, 1);
+    // pass 1 in is_main_thread because dont want to ++handle_requests counter because here just drop_head without handle it
+    if (r1.fd != queue->first->data.fd){
+        printf("\nsuccess_drop_head\n\n");
+    }
+    return HANDLE_CURRENT;
+}
 
 int overload_handler(OVERLOAD_HANDLE handle_type, Queue* queue, int queue_size, int max_size, request curr_request) {
     //TODO: call the matching functions (and add cases)
@@ -272,6 +279,7 @@ int overload_handler(OVERLOAD_HANDLE handle_type, Queue* queue, int queue_size, 
         case BLOCK: return block_handler(queue, queue_size);
         case BLOCK_FLUSH: return block_flush_handler(queue);
         case DROP_TAIL: return drop_tail(curr_request);
+        case DROP_HEAD: return drop_head(queue);
 
         default: {
 #ifdef DEBUG_PRINT
@@ -336,7 +344,7 @@ int main(int argc, char *argv[])
         }
 
         // like enqueue in tutorial
-
+        printf("\nenter_request\n\n");
         enqueue_request(requests_queue, curr_req, &mutex_request, &cond_request);
     }
     //don't need to free because run forever
