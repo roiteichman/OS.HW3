@@ -269,7 +269,9 @@ int drop_head(Queue* queue){
     request r1 = dequeue_request(requests_queue, &mutex_request, &cond_request, 1);
     // pass 1 in is_main_thread because dont want to ++handle_requests counter because here just drop_head without handle it
 
+    Close(r1.fd);
     printf("\nafter_drop_head\n\n");
+
     if  (queue->first!=NULL){
         if (r1.fd != queue->first->data.fd){
             printf("\nsuccess_drop_head\n\n");
