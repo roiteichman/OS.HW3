@@ -260,6 +260,7 @@ int block_flush_handler(Queue* queue){
 }
 
 int drop_tail(request curr){
+    printf("\nhi_drop_tail\n\n");
     Close(curr.fd);
     return SKIP_CURRENT;
 }
@@ -327,9 +328,9 @@ int main(int argc, char *argv[])
         int requests_sum = get_requests_num();
 
         if (requests_sum >= queue_size) {
-
+            printf("\nhi_overload\n\n");
             // handle overloading and check if skip the current request (1) or do the request (0):
-            if (overload_handler(schedalg, requests_queue ,queue_size, max_size, curr_req) == 1) {
+            if (overload_handler(schedalg, requests_queue ,queue_size, max_size, curr_req) == SKIP_CURRENT) {
                 continue;
             }
         }
