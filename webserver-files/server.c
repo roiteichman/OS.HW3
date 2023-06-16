@@ -15,6 +15,8 @@ int handled_requests = 0;
 typedef enum  {BLOCK, DROP_TAIL, DROP_HEAD,
                BLOCK_FLUSH, DYNAMIC, DROP_RANDOM} OVERLOAD_HANDLE;
 
+#define SKIP_CURRENT 1
+#define HANDLE_CURRENT 0
 
 // 
 // server.c: A very, very simple web server
@@ -242,7 +244,7 @@ int block_handler(Queue* queue, int queue_size){
     }
     pthread_mutex_unlock(&mutex_request);
 
-    return 0;
+    return HANDLE_CURRENT;
 }
 
 int block_flush_handler(Queue* queue){
@@ -254,15 +256,21 @@ int block_flush_handler(Queue* queue){
     }
     pthread_mutex_unlock(&mutex_request);
 
-    return 1;
+    return SKIP_CURRENT;
 }
 
-int overload_handler(OVERLOAD_HANDLE handle_type, Queue* queue, int queue_size, int max_size) {
+int drop_tail(request curr){
+    Close(curr.fd);
+    return SKIP_CURRENT;
+}
+
+
+int overload_handler(OVERLOAD_HANDLE handle_type, Queue* queue, int queue_size, int max_size, request curr_request) {
     //TODO: call the matching functions (and add cases)
     switch (handle_type) {
         case BLOCK: return block_handler(queue, queue_size);
         case BLOCK_FLUSH: return block_flush_handler(queue);
-        case DROP_TAIL: return fictive_handler();
+        case DROP_TAIL: return drop_tail(curr_request);
 
         default: {
 #ifdef DEBUG_PRINT
@@ -320,8 +328,8 @@ int main(int argc, char *argv[])
 
         if (requests_sum >= queue_size) {
 
-            // handle overloading and check if skip (1) or do the request (0):
-            if (overload_handler(schedalg, requests_queue ,queue_size, max_size) == 1) {
+            // handle overloading and check if skip the current request (1) or do the request (0):
+            if (overload_handler(schedalg, requests_queue ,queue_size, max_size, curr_req) == 1) {
                 continue;
             }
         }
