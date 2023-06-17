@@ -307,7 +307,6 @@ int overload_handler(OVERLOAD_HANDLE handle_type, Queue* queue, int queue_size, 
 // TODO: block_fluse - like block maybe another cond for empty list;
 // TODO: Dynamic - increase queue_size by 1 until become equal to max_size, then assignment of dynamic to drop_tail and call the handler again in this specific case
 
-
 // TODO: check if lonely request in queue - edge case
 
 /*------------------------------------------------------------------------------
