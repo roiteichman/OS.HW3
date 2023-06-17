@@ -261,9 +261,9 @@ int block_flush_handler(Queue* queue){
 }
 
 int drop_tail(request curr){
-    char buf[MAXBUF];
-    Read(curr.fd, buf, MAXBUF);
-    Close(curr.fd);
+    //char buf[MAXBUF];
+    //Read(curr.fd, buf, MAXBUF);
+    //Close(curr.fd);
     return SKIP_CURRENT;
 }
 int drop_head(Queue* queue){
@@ -271,9 +271,9 @@ int drop_head(Queue* queue){
     printf("\nhandled_request_num_is: %d\n\n", handled_requests);
     request r1 = dequeue_request(queue, &mutex_request, &cond_request, 1);
     // pass 1 in is_main_thread because dont want to ++handle_requests counter because here just drop_head without handle it
-    char buf[MAXBUF];
-    Read(r1.fd, buf, MAXBUF);
-    Close(r1.fd);
+    //char buf[MAXBUF];
+    //Read(r1.fd, buf, MAXBUF);
+    //Close(r1.fd);
     printf("\nafter_drop_head\n\n");
 
     if  (queue->first!=NULL){
