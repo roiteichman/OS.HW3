@@ -3,11 +3,6 @@
 #include "request.h"
 #include "Queue.h"
 
-
-
-
-
-
 Queue* requests_queue = NULL;
 //List* handled_queue = NULL;
 pthread_mutex_t mutex_request;
