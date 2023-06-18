@@ -248,18 +248,18 @@ int drop_tail(request curr){
     printf("\nafter_drop_head\n\n");
     return SKIP_CURRENT;
 }
-int drop_head(Queue* queue){
+int drop_head(){
     printf("\nhi_drop_head\n\n");
     printf("\nhandled_request_num_is: %d\n\n", handled_requests);
-    request r1 = dequeue_request(queue, &mutex_request, &cond_request, 1);
+    request r1 = dequeue_request(requests_queue, &mutex_request, &cond_request, 1);
     // pass 1 in is_main_thread because dont want to ++handle_requests counter because here just drop_head without handle it
     char buf[MAXBUF];
     Read(r1.fd, buf, MAXBUF);
     Close(r1.fd);
     printf("\nafter_drop_head\n\n");
 
-    if  (queue->first!=NULL){
-        if (r1.fd != queue->first->data.fd){
+    if  (requests_queue->first!=NULL){
+        if (r1.fd != requests_queue->first->data.fd){
             printf("\nsuccess_drop_head\n\n");
         }
     }
@@ -300,7 +300,7 @@ int overload_handler(OVERLOAD_HANDLE* handle_type, Queue* queue, int* queue_size
         case BLOCK: return block_handler(queue, queue_size);
         case BLOCK_FLUSH: return block_flush_handler(queue);
         case DROP_TAIL: return drop_tail(curr_request);
-        case DROP_HEAD: return drop_head(queue);
+        case DROP_HEAD: return drop_head();
         case DYNAMIC: return dynamic(queue, queue_size, max_size, handle_type, curr_request);
         case DROP_RANDOM: return drop_random(queue);
 
@@ -357,6 +357,7 @@ int main(int argc, char *argv[])
         request curr_req = {connfd, arrival, arrival};
 
         int requests_sum = get_requests_num();
+        printf("\nqueue_size = %d \n\n", queue_size);
 
         if (requests_sum >= queue_size) {
             printf("\nhi_overload\n\n");
