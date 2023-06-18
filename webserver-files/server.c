@@ -176,7 +176,9 @@ void* thread_job(void* thread_id){
         show_statistic(id, static_counter, dynamic_counter, total_counter, curr_req);
 
         // TODO: do we need to put mutex on close because after a lot of request we get Rio_readlineb error and one of the options is the open and close mechanism
+        printf("\nClose the fd: %d\n\n", curr_req.fd);
         Close(curr_req.fd);
+        printf("\nafter Close the fd: %d\n\n", curr_req.fd);
     }
     return NULL;
 }
@@ -346,6 +348,7 @@ int main(int argc, char *argv[])
     while (1) {
         clientlen = sizeof(clientaddr);
         connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen);
+        printf("\nnew fd is: %d\n\n", connfd);
         struct timeval arrival;
         if (gettimeofday(&arrival, NULL) == -1) {
             // TODO: error format
