@@ -290,7 +290,9 @@ int drop_head(Queue* queue){
 int dynamic(Queue* queue, int* queue_size, int max_size, OVERLOAD_HANDLE* handle_type, request curr_request){
     if (queue->size<max_size){
         printf("\nhi_dynamic_++\n\n");
+        printf("\nqueue_size_old = %d\n\n", *queue_size);
         *queue_size++;
+        printf("\nqueue_size_new = %d\n\n", *queue_size);
         return SKIP_CURRENT;
     }
     else{
@@ -364,8 +366,10 @@ int main(int argc, char *argv[])
 
         if (requests_sum >= queue_size) {
             printf("\nhi_overload\n\n");
+            printf("\nrequests_sum = %d >= queue_size = %d\n\n", requests_sum, queue_size);
             // handle overloading and check if skip the current request (1) or do the request (0):
             if (overload_handler(&schedalg, requests_queue ,&queue_size, max_size, curr_req) == SKIP_CURRENT) {
+                printf("\nqueue_size = %d\n\n", queue_size);
                 continue;
             }
         }
