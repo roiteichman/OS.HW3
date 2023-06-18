@@ -240,8 +240,8 @@ int block_flush_handler(Queue* queue){
 
 int drop_tail(request curr){
     printf("\nhi_drop_tail\n\n");
-    //char buf[MAXBUF];
-    //Read(curr.fd, buf, MAXBUF);
+    char buf[MAXBUF];
+    Read(curr.fd, buf, MAXBUF);
     Close(curr.fd);
     printf("\nafter_drop_head\n\n");
     return SKIP_CURRENT;
