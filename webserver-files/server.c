@@ -289,10 +289,12 @@ int drop_head(Queue* queue){
 
 int dynamic(Queue* queue, int* queue_size, int max_size, OVERLOAD_HANDLE* handle_type, request curr_request){
     if (queue->size<max_size){
+        printf("\nhi_dynamic_++\n\n");
         *queue_size++;
         return HANDLE_CURRENT;
     }
     else{
+        printf("\nhi_dynamic_drop_tail\n\n");
         *handle_type = DROP_TAIL;
         return drop_tail(curr_request);
     }
