@@ -281,7 +281,7 @@ int dynamic(Queue* queue, int* queue_size, int max_size, OVERLOAD_HANDLE* handle
         return drop_tail(curr_request);
     }
 }
-int random(Queue* queue){
+int drop_random(Queue* queue){
     /*node* temp = queue->first;
     while (temp != NULL){
         if (rand()>0.5){
@@ -300,7 +300,7 @@ int overload_handler(OVERLOAD_HANDLE* handle_type, Queue* queue, int* queue_size
         case DROP_TAIL: return drop_tail(curr_request);
         case DROP_HEAD: return drop_head(queue);
         case DYNAMIC: return dynamic(queue, queue_size, max_size, handle_type, curr_request);
-        case DROP_RANDOM: return random(queue);
+        case DROP_RANDOM: return drop_random(queue);
 
         default: {
 #ifdef DEBUG_PRINT
