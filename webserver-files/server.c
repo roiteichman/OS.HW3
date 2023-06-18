@@ -71,7 +71,7 @@ void getargs(int argc, char *argv[], int *port, int* threads, int* queue_size, O
     *queue_size = atoi(argv[3]);
     init_schedalg(argv[4], schedalg);
     if (argc==6 && *schedalg == DYNAMIC) {
-        *queue_size = atoi(argv[5]);
+        *max_size = atoi(argv[5]);
     }
 }
 
