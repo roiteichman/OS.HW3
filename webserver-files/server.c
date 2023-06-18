@@ -282,14 +282,14 @@ int dynamic(Queue* queue, int* queue_size, int max_size, OVERLOAD_HANDLE* handle
     }
 }
 int random(Queue* queue){
-    node* temp = queue->first;
+    /*node* temp = queue->first;
     while (temp != NULL){
         if (rand()>0.5){
 
 
             //request r1 = dequeue_request(queue, &mutex_request, &cond_request, 1);
         }
-    }
+    }*/
 }
 
 int overload_handler(OVERLOAD_HANDLE* handle_type, Queue* queue, int* queue_size, int max_size, request curr_request) {
