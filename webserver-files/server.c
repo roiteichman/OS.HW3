@@ -258,11 +258,11 @@ int drop_head(){
     Close(r1.fd);
     printf("\nafter_drop_head\n\n");
 
-    if  (requests_queue->first!=NULL){
+    /*if  (requests_queue->first!=NULL){
         if (r1.fd != requests_queue->first->data.fd){
             printf("\nsuccess_drop_head\n\n");
         }
-    }
+    }*/
 
     return HANDLE_CURRENT;
 }
