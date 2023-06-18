@@ -357,7 +357,7 @@ int main(int argc, char *argv[])
         request curr_req = {connfd, arrival, arrival};
 
         int requests_sum = get_requests_num();
-        printf("\nqueue_size_general = %d \n\n", queue_size);
+        printf("\nqueue_size_general = %d \n\n", requests_queue->size);
 
         if (requests_sum >= queue_size) {
             printf("\nhi_overload\n\n");
