@@ -201,38 +201,16 @@ int create_threads (int num_threads){
 
 int get_requests_num() {
     int res = 0;
+
     pthread_mutex_lock(&mutex_request);
+
     res += requests_queue->size;
     res += handled_requests;
+
     pthread_mutex_unlock(&mutex_request);
+
     return res;
 }
-/*
-void enqueue_request(List* list, int request ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond){
-    pthread_mutex_lock(p_mutex);
-
-    add_to_list(list, request);
-    pthread_cond_signal(p_cond);
-
-    pthread_mutex_unlock(p_mutex);
-}
-
-int dequeue_request(List* list ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond, int is_main_thread){
-    pthread_mutex_lock(p_mutex);
-
-    while (list->size==0){
-        pthread_cond_wait(p_cond, p_mutex);
-    }
-    int socket_fd = remove_first(list);
-
-    if ( !is_main_thread ) handled_requests++;
-
-    pthread_mutex_unlock(p_mutex);
-
-    return socket_fd;
-}
-*/
-
 
 int fictive_handler(){return 0;}
 
@@ -288,9 +266,9 @@ int drop_head(Queue* queue){
 }
 
 int dynamic(Queue* queue, int* queue_size, int max_size, OVERLOAD_HANDLE* handle_type, request curr_request){
-    if (queue->size<max_size){
+    if (*queue_size<max_size){
         printf("\nhi_dynamic_++\n\n");
-        printf("\nqueue->size = %d < max_size = %d\n\n", queue->size, max_size);
+        //printf("\nqueue->size = %d < max_size = %d\n\n", queue->size, max_size);
         printf("\nqueue_size_old = %d\n\n", *queue_size);
         (*queue_size)++;
         printf("\nqueue_size_new = %d\n\n", *queue_size);
