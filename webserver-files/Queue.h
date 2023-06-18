@@ -69,6 +69,9 @@ void add_to_Queue (Queue* q, request req) {
 request remove_first (Queue* q) {
 #ifdef DEBUG_PRINT
     assert(q->size>0);
+    if (q->size==0){
+        printf("\nsize 0!!!\n\n");
+    }
 #endif
 //    if (q->size == 0) {
 //        return -1;
