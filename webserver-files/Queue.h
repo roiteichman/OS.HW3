@@ -69,9 +69,9 @@ void add_to_Queue (Queue* q, request req) {
 request remove_first (Queue* q) {
 #ifdef DEBUG_PRINT
     assert(q->size>0);
-    if (q->size==0){
+    /*if (q->size==0){
         printf("\nsize 0!!!\n\n");
-    }
+    }*/
 #endif
 //    if (q->size == 0) {
 //        return -1;
@@ -81,6 +81,9 @@ request remove_first (Queue* q) {
     q->first = node_to_remove->next;
     if (q->first != NULL){
         q->first->prev = NULL;
+    }
+    if (q->last == node_to_remove){
+        q->last = NULL;
     }
     free(node_to_remove);
     q->size--;
