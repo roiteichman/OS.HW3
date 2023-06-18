@@ -291,7 +291,7 @@ int dynamic(Queue* queue, int* queue_size, int max_size, OVERLOAD_HANDLE* handle
     if (queue->size<max_size){
         printf("\nhi_dynamic_++\n\n");
         printf("\nqueue_size_old = %d\n\n", *queue_size);
-        *queue_size++;
+        (*queue_size)++;
         printf("\nqueue_size_new = %d\n\n", *queue_size);
         return SKIP_CURRENT;
     }
