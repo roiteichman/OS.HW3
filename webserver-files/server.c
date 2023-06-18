@@ -291,7 +291,7 @@ int dynamic(Queue* queue, int* queue_size, int max_size, OVERLOAD_HANDLE* handle
     if (queue->size<max_size){
         printf("\nhi_dynamic_++\n\n");
         *queue_size++;
-        return HANDLE_CURRENT;
+        return SKIP_CURRENT;
     }
     else{
         printf("\nhi_dynamic_drop_tail\n\n");
