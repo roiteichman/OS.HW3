@@ -251,8 +251,8 @@ int drop_head(Queue* queue){
     printf("\nhandled_request_num_is: %d\n\n", handled_requests);
     request r1 = dequeue_request(queue, &mutex_request, &cond_request, 1);
     // pass 1 in is_main_thread because dont want to ++handle_requests counter because here just drop_head without handle it
-    char buf[MAXBUF];
-    Read(r1.fd, buf, MAXBUF);
+    //char buf[MAXBUF];
+    //Read(r1.fd, buf, MAXBUF);
     Close(r1.fd);
     printf("\nafter_drop_head\n\n");
 
@@ -270,6 +270,7 @@ int dynamic(Queue* queue, int* queue_size, int max_size, OVERLOAD_HANDLE* handle
         printf("\nhi_dynamic_++\n\n");
         //printf("\nqueue->size = %d < max_size = %d\n\n", queue->size, max_size);
         printf("\nqueue_size_old = %d\n\n", *queue_size);
+        // TODO: is needed Mutex here on ++ ?
         (*queue_size)++;
         printf("\nqueue_size_new = %d\n\n", *queue_size);
         return SKIP_CURRENT;
@@ -278,6 +279,16 @@ int dynamic(Queue* queue, int* queue_size, int max_size, OVERLOAD_HANDLE* handle
         printf("\nhi_dynamic_drop_tail\n\n");
         *handle_type = DROP_TAIL;
         return drop_tail(curr_request);
+    }
+}
+int random(Queue* queue){
+    node* temp = queue->first;
+    while (temp != NULL){
+        if (rand()>0.5){
+
+
+            //request r1 = dequeue_request(queue, &mutex_request, &cond_request, 1);
+        }
     }
 }
 
@@ -289,6 +300,7 @@ int overload_handler(OVERLOAD_HANDLE* handle_type, Queue* queue, int* queue_size
         case DROP_TAIL: return drop_tail(curr_request);
         case DROP_HEAD: return drop_head(queue);
         case DYNAMIC: return dynamic(queue, queue_size, max_size, handle_type, curr_request);
+        case DROP_RANDOM: return random(queue);
 
         default: {
 #ifdef DEBUG_PRINT
