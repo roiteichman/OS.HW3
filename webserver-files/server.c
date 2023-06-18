@@ -236,11 +236,11 @@ int dequeue_request(List* list ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond
 
 int fictive_handler(){return 0;}
 
-int block_handler(Queue* queue, int queue_size){
+int block_handler(Queue* queue, int* queue_size){
     // lock the mutex
     pthread_mutex_lock(&mutex_request);
     // enter the main thread to wait by cond_wait
-    while (queue->size + handled_requests >= queue_size){
+    while (queue->size + handled_requests >= *queue_size){
         pthread_cond_wait(&cond_list_full, &mutex_request);
     }
     pthread_mutex_unlock(&mutex_request);
@@ -261,9 +261,11 @@ int block_flush_handler(Queue* queue){
 }
 
 int drop_tail(request curr){
+    printf("\nhi_drop_tail\n\n");
     char buf[MAXBUF];
     Read(curr.fd, buf, MAXBUF);
     Close(curr.fd);
+    printf("\nafter_drop_head\n\n");
     return SKIP_CURRENT;
 }
 int drop_head(Queue* queue){
@@ -285,13 +287,25 @@ int drop_head(Queue* queue){
     return HANDLE_CURRENT;
 }
 
-int overload_handler(OVERLOAD_HANDLE handle_type, Queue* queue, int queue_size, int max_size, request curr_request) {
+int dynamic(Queue* queue, int* queue_size, int max_size, OVERLOAD_HANDLE* handle_type, request curr_request){
+    if (queue->size<max_size){
+        *queue_size++;
+        return HANDLE_CURRENT;
+    }
+    else{
+        *handle_type = DROP_TAIL;
+        return drop_tail(curr_request);
+    }
+}
+
+int overload_handler(OVERLOAD_HANDLE* handle_type, Queue* queue, int* queue_size, int max_size, request curr_request) {
     //TODO: call the matching functions (and add cases)
-    switch (handle_type) {
+    switch (*handle_type) {
         case BLOCK: return block_handler(queue, queue_size);
         case BLOCK_FLUSH: return block_flush_handler(queue);
         case DROP_TAIL: return drop_tail(curr_request);
         case DROP_HEAD: return drop_head(queue);
+        case DYNAMIC: return dynamic(queue, queue_size, max_size, handle_type, curr_request);
 
         default: {
 #ifdef DEBUG_PRINT
@@ -349,7 +363,7 @@ int main(int argc, char *argv[])
         if (requests_sum >= queue_size) {
             printf("\nhi_overload\n\n");
             // handle overloading and check if skip the current request (1) or do the request (0):
-            if (overload_handler(schedalg, requests_queue ,queue_size, max_size, curr_req) == SKIP_CURRENT) {
+            if (overload_handler(&schedalg, requests_queue ,&queue_size, max_size, curr_req) == SKIP_CURRENT) {
                 continue;
             }
         }
