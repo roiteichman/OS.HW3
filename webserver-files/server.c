@@ -271,6 +271,9 @@ int dynamic(Queue* queue, int* queue_size, int max_size, OVERLOAD_HANDLE* handle
         printf("\nhi_dynamic_++\n\n");
         //printf("\nqueue->size = %d < max_size = %d\n\n", queue->size, max_size);
         printf("\nqueue_size_old = %d\n\n", *queue_size);
+        char buf[MAXBUF];
+        Read(curr_request.fd, buf, MAXBUF);
+        Close(curr_request.fd);
         // TODO: is needed Mutex here on ++ ?
         (*queue_size)++;
         printf("\nqueue_size_new = %d\n\n", *queue_size);
