@@ -113,7 +113,7 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, request* req, in
 
    Rio_writen(fd, buf, strlen(buf));
 
-    sprintf(buf, "Stat-Req-arrival:: %lu.%06lu\r\n", buf, req->arrival.tv_sec, req->arrival.tv_usec);
+    sprintf(buf, "Stat-Req-arrival:: %lu.%06lu\r\n", req->arrival.tv_sec, req->arrival.tv_usec);
     sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, req->dispatch.tv_sec, req->dispatch.tv_usec);
 
     sprintf(buf, "%sStat-Thread-Id:: %d\r\n", buf, *id);
