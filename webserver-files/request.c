@@ -102,7 +102,7 @@ void requestGetFiletype(char *filename, char *filetype)
       strcpy(filetype, "text/plain");
 }
 
-void requestServeDynamic(int fd, char *filename, char *cgiargs, struct timeval* arrival, struct timeval* dispatch, int* id, int* static_counter, int* dynamic_counter, int* total_counter)
+void requestServeDynamic(int fd, char *filename, char *cgiargs, struct timeval* arrival, struct timeval* dispatch, long* id, int* static_counter, int* dynamic_counter, int* total_counter)
 {
    char buf[MAXLINE], *emptylist[] = {NULL};
 
@@ -116,7 +116,7 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, struct timeval* 
     sprintf(buf, "Stat-Req-arrival:: %lu.%06lu\r\n", arrival->tv_sec, arrival->tv_usec);
     sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, dispatch->tv_sec, dispatch->tv_usec);
 
-    sprintf(buf, "%sStat-Thread-Id:: %d\r\n", buf, *id);
+    sprintf(buf, "%sStat-Thread-Id:: %ld\r\n", buf, *id);
     sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf ,*total_counter);
     sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, *static_counter);
     sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n\r\n", buf, *dynamic_counter);
@@ -134,7 +134,7 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, struct timeval* 
 }
 
 
-void requestServeStatic(int fd, char *filename, int filesize, struct timeval* arrival, struct timeval* dispatch, int* id, int* static_counter, int* dynamic_counter, int* total_counter)
+void requestServeStatic(int fd, char *filename, int filesize, struct timeval* arrival, struct timeval* dispatch, long* id, int* static_counter, int* dynamic_counter, int* total_counter)
 {
    int srcfd;
    char *srcp, filetype[MAXLINE], buf[MAXBUF];
@@ -157,7 +157,7 @@ void requestServeStatic(int fd, char *filename, int filesize, struct timeval* ar
    sprintf(buf, "%sStat-Req-arrival:: %lu.%06lu\r\n", buf, arrival->tv_sec, arrival->tv_usec);
    sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, dispatch->tv_sec, dispatch->tv_usec);
 
-   sprintf(buf, "%sStat-Thread-Id:: %d\r\n", buf, *id);
+   sprintf(buf, "%sStat-Thread-Id:: %ld\r\n", buf, *id);
    sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf ,*total_counter);
    sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, *static_counter);
    sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n\r\n", buf, *dynamic_counter);
@@ -171,7 +171,7 @@ void requestServeStatic(int fd, char *filename, int filesize, struct timeval* ar
 }
 
 // handle a request
-void requestHandle(int fd, struct timeval* arrival, struct timeval* dispatch, int* id, int* static_counter, int* dynamic_counter, int* total_counter)
+void requestHandle(int fd, struct timeval* arrival, struct timeval* dispatch, long* id, int* static_counter, int* dynamic_counter, int* total_counter)
 {
    int is_static;
    struct stat sbuf;
