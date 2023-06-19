@@ -120,7 +120,7 @@ void dec_counter() {
 /*-----------------------------------
  statistic functions:
  -----------------------------------*/
-
+/*
 void show_statistic(int id, int static_counter, int dynamic_counter, int total_counter, request req){
     char buf[MAXBUF];
     sprintf(buf, "Stat-Req-arrival:: %lu.%06lu\r\n", req.arrival.tv_sec, req.arrival.tv_usec);
@@ -132,6 +132,7 @@ void show_statistic(int id, int static_counter, int dynamic_counter, int total_c
     sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n", buf, dynamic_counter);
     Rio_writen(req.fd, buf, strlen(buf));
 }
+*/
 
 // needed t2 > t1
 int passTime (struct timeval* t1, struct timeval *result) {
@@ -180,9 +181,13 @@ void* thread_job(void* thread_id){
         //show_statistic(id, static_counter, dynamic_counter, total_counter, curr_req);
 
         // TODO: do we need to put mutex on close because after a lot of request we get Rio_readlineb error and one of the options is the open and close mechanism
+#ifdef DEBUG_PRINT
         printf("\nClose the fd: %d\n\n", curr_req.fd);
+#endif
         Close(curr_req.fd);
+#ifdef DEBUG_PRINT
         printf("\nafter Close the fd: %d\n\n", curr_req.fd);
+#endif
     }
     return NULL;
 }
@@ -245,47 +250,54 @@ int block_flush_handler(Queue* queue){
 }
 
 int drop_tail(request curr){
+#ifdef DEBUG_PRINT
     printf("\nhi_drop_tail\n\n");
+#endif
     char buf[MAXBUF];
     Read(curr.fd, buf, MAXBUF);
     Close(curr.fd);
+#ifdef DEBUG_PRINT
     printf("\nafter_drop_head\n\n");
+#endif
     return SKIP_CURRENT;
 }
 int drop_head(){
+#ifdef DEBUG_PRINT
     printf("\nhi_drop_head\n\n");
     printf("\nhandled_request_num_is: %d\n\n", handled_requests);
+#endif
     request r1 = dequeue_request(requests_queue, &mutex_request, &cond_request, 1);
     // pass 1 in is_main_thread because dont want to ++handle_requests counter because here just drop_head without handle it
     char buf[MAXBUF];
     Read(r1.fd, buf, MAXBUF);
     Close(r1.fd);
+#ifdef DEBUG_PRINT
     printf("\nafter_drop_head\n\n");
-
-    /*if  (requests_queue->first!=NULL){
-        if (r1.fd != requests_queue->first->data.fd){
-            printf("\nsuccess_drop_head\n\n");
-        }
-    }*/
-
+#endif
     return HANDLE_CURRENT;
 }
 
 int dynamic(Queue* queue, int* queue_size, int max_size, OVERLOAD_HANDLE* handle_type, request curr_request){
     if (*queue_size<max_size){
+#ifdef DEBUG_PRINT
         printf("\nhi_dynamic_++\n\n");
         //printf("\nqueue->size = %d < max_size = %d\n\n", queue->size, max_size);
         printf("\nqueue_size_old = %d\n\n", *queue_size);
+#endif
         char buf[MAXBUF];
         Read(curr_request.fd, buf, MAXBUF);
         Close(curr_request.fd);
         // TODO: is needed Mutex here on ++ ?
         (*queue_size)++;
+#ifdef DEBUG_PRINT
         printf("\nqueue_size_new = %d\n\n", *queue_size);
+#endif
         return SKIP_CURRENT;
     }
     else{
+#ifdef DEBUG_PRINT
         printf("\nhi_dynamic_drop_tail\n\n");
+#endif
         *handle_type = DROP_TAIL;
         return drop_tail(curr_request);
     }
@@ -362,7 +374,9 @@ int main(int argc, char *argv[])
     while (1) {
         clientlen = sizeof(clientaddr);
         connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen);
+#ifdef DEBUG_PRINT
         printf("\nnew fd is: %d\n\n", connfd);
+#endif
         struct timeval arrival;
         if (gettimeofday(&arrival, NULL) == -1) {
             // TODO: error format
@@ -371,21 +385,27 @@ int main(int argc, char *argv[])
         request curr_req = {connfd, arrival, arrival};
 
         int requests_sum = get_requests_num();
+#ifdef DEBUG_PRINT
         printf("\nqueue_size_general = %d \n\n", requests_queue->size);
-
+#endif
         if (requests_sum >= queue_size) {
+#ifdef DEBUG_PRINT
             printf("\nhi_overload\n\n");
             printf("\nrequests_sum = %d >= queue_size = %d\n\n", requests_sum, queue_size);
             printf("\nmax_size = %d\n\n", max_size);
+#endif
             // handle overloading and check if skip the current request (1) or do the request (0):
             if (overload_handler(&schedalg, requests_queue ,&queue_size, max_size, curr_req) == SKIP_CURRENT) {
+#ifdef DEBUG_PRINT
                 printf("\nqueue_size = %d\n\n", queue_size);
+#endif
                 continue;
             }
         }
-
         // like enqueue in tutorial
+#ifdef DEBUG_PRINT
         printf("\nenter_request\n\n");
+#endif
         enqueue_request(requests_queue, curr_req, &mutex_request, &cond_request);
     }
     //don't need to free because run forever
