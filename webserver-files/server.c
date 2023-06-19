@@ -181,13 +181,8 @@ void* thread_job(void* thread_id){
         //show_statistic(id, static_counter, dynamic_counter, total_counter, curr_req);
 
         // TODO: do we need to put mutex on close because after a lot of request we get Rio_readlineb error and one of the options is the open and close mechanism
-#ifdef DEBUG_PRINT
-        printf("\nClose the fd: %d\n\n", curr_req.fd);
-#endif
         Close(curr_req.fd);
-#ifdef DEBUG_PRINT
-        printf("\nafter Close the fd: %d\n\n", curr_req.fd);
-#endif
+
     }
     return NULL;
 }
