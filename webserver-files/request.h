@@ -1,5 +1,7 @@
 #ifndef __REQUEST_H__
+#include "segel.h"
 
-void requestHandle(int fd);
+void requestHandle(int fd, struct timeval* arrival, struct timeval* dispatch,
+        int* id, int* static_counter, int* dynamic_counter, int* total_counter);
 
 #endif
