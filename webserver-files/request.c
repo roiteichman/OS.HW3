@@ -113,7 +113,7 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, request* req, in
 
    Rio_writen(fd, buf, strlen(buf));
 
-    sprintf(buf, "%Stat-Req-arrival:: %lu.%06lu\r\n", buf, req->arrival.tv_sec, req->arrival.tv_usec);
+    sprintf(buf, "Stat-Req-arrival:: %lu.%06lu\r\n", buf, req->arrival.tv_sec, req->arrival.tv_usec);
     sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, req->dispatch.tv_sec, req->dispatch.tv_usec);
 
     sprintf(buf, "%sStat-Thread-Id:: %d\r\n", buf, *id);
@@ -207,7 +207,7 @@ void requestHandle(int fd, request* req, int* id, int* static_counter, int* dyna
       }
       // increasing the amount of static requests that handled
       (*static_counter)++;
-      requestServeStatic(fd, filename, sbuf.st_size);
+      requestServeStatic(fd, filename, sbuf.st_size, req, id, static_counter, dynamic_counter, total_counter);
    } else {
       if (!(S_ISREG(sbuf.st_mode)) || !(S_IXUSR & sbuf.st_mode)) {
          requestError(fd, filename, "403", "Forbidden", "OS-HW3 Server could not run this CGI program");
@@ -215,7 +215,7 @@ void requestHandle(int fd, request* req, int* id, int* static_counter, int* dyna
       }
       // increasing the amount of static requests that handled
        (*dynamic_counter)++;
-      requestServeDynamic(fd, filename, cgiargs);
+      requestServeDynamic(fd, filename, cgiargs, req, id, static_counter, dynamic_counter, total_counter);
    }
 }
 
