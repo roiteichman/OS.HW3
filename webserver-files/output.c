@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
   
   /* Generate the HTTP response */
   printf("Content-length: %lu\r\n", strlen(content));
-  printf("Content-type: text/html\r\n"); //remove \r\n from the end of this line
+  printf("Content-type: text/html\r\n\r\n");
   printf("%s", content);
   fflush(stdout);
 
