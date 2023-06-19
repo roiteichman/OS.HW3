@@ -142,12 +142,7 @@ int passTime (struct timeval* t1, struct timeval *result) {
         perror("gettimeofday error:");
         return -1;
     }
-    result->tv_sec = t2.tv_sec - t1->tv_sec;
-    result->tv_usec = t2.tv_usec - t1->tv_usec;
-    if (result->tv_usec < 0) {
-        result->tv_sec--;
-        result->tv_usec += 1000000;
-    }
+    timersub(t1, &t2, result);
     return 0;
 }
 
