@@ -185,11 +185,13 @@ void* thread_job(void* thread_id){
         // like enqueue in tutorial
         //add_to_list(handled_queue ,socket_fd);
 
-        requestHandle(curr_req.fd);
+        requestHandle(curr_req.fd, &curr_req, &id, &static_counter, &dynamic_counter, &total_counter);
+        //request* req, int* id, int* static_counter, int* dynamic_counter, int* total_counter
+
         dec_counter();
 
         // statistics:
-        show_statistic(id, static_counter, dynamic_counter, total_counter, curr_req);
+        //show_statistic(id, static_counter, dynamic_counter, total_counter, curr_req);
 
         // TODO: do we need to put mutex on close because after a lot of request we get Rio_readlineb error and one of the options is the open and close mechanism
         printf("\nClose the fd: %d\n\n", curr_req.fd);
