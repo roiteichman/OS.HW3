@@ -185,7 +185,7 @@ void* thread_job(void* thread_id){
         // like enqueue in tutorial
         //add_to_list(handled_queue ,socket_fd);
 
-        requestHandle(curr_req.fd, &curr_req, &id, &static_counter, &dynamic_counter, &total_counter);
+        requestHandle(curr_req.fd, &(curr_req.arrival), &(curr_req.dispatch), &id, &static_counter, &dynamic_counter, &total_counter);
         //request* req, int* id, int* static_counter, int* dynamic_counter, int* total_counter
 
         dec_counter();

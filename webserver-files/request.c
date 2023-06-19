@@ -102,7 +102,7 @@ void requestGetFiletype(char *filename, char *filetype)
       strcpy(filetype, "text/plain");
 }
 
-void requestServeDynamic(int fd, char *filename, char *cgiargs, request* req, int* id, int* static_counter, int* dynamic_counter, int* total_counter)
+void requestServeDynamic(int fd, char *filename, char *cgiargs, struct timeval* arrival, struct timeval* dispatch, int* id, int* static_counter, int* dynamic_counter, int* total_counter)
 {
    char buf[MAXLINE], *emptylist[] = {NULL};
 
@@ -113,8 +113,8 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, request* req, in
 
    Rio_writen(fd, buf, strlen(buf));
 
-    sprintf(buf, "Stat-Req-arrival:: %lu.%06lu\r\n", req->arrival.tv_sec, req->arrival.tv_usec);
-    sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, req->dispatch.tv_sec, req->dispatch.tv_usec);
+    sprintf(buf, "Stat-Req-arrival:: %lu.%06lu\r\n", arrival->tv_sec, arrival->tv_usec);
+    sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, dispatch->tv_sec, dispatch->tv_usec);
 
     sprintf(buf, "%sStat-Thread-Id:: %d\r\n", buf, *id);
     sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf ,*total_counter);
@@ -134,7 +134,7 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, request* req, in
 }
 
 
-void requestServeStatic(int fd, char *filename, int filesize, request* req, int* id, int* static_counter, int* dynamic_counter, int* total_counter)
+void requestServeStatic(int fd, char *filename, int filesize, struct timeval* arrival, struct timeval* dispatch, int* id, int* static_counter, int* dynamic_counter, int* total_counter)
 {
    int srcfd;
    char *srcp, filetype[MAXLINE], buf[MAXBUF];
@@ -154,8 +154,8 @@ void requestServeStatic(int fd, char *filename, int filesize, request* req, int*
    sprintf(buf, "%sContent-Length: %d\r\n", buf, filesize);
    sprintf(buf, "%sContent-Type: %s\r\n", buf, filetype);
 
-   sprintf(buf, "%sStat-Req-arrival:: %lu.%06lu\r\n", buf, req->arrival.tv_sec, req->arrival.tv_usec);
-   sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, req->dispatch.tv_sec, req->dispatch.tv_usec);
+   sprintf(buf, "%sStat-Req-arrival:: %lu.%06lu\r\n", buf, arrival->tv_sec, arrival->tv_usec);
+   sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, dispatch->tv_sec, dispatch->tv_usec);
 
    sprintf(buf, "%sStat-Thread-Id:: %d\r\n", buf, *id);
    sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf ,*total_counter);
@@ -171,7 +171,7 @@ void requestServeStatic(int fd, char *filename, int filesize, request* req, int*
 }
 
 // handle a request
-void requestHandle(int fd, request* req, int* id, int* static_counter, int* dynamic_counter, int* total_counter)
+void requestHandle(int fd, struct timeval* arrival, struct timeval* dispatch, int* id, int* static_counter, int* dynamic_counter, int* total_counter)
 {
    int is_static;
    struct stat sbuf;
@@ -207,7 +207,7 @@ void requestHandle(int fd, request* req, int* id, int* static_counter, int* dyna
       }
       // increasing the amount of static requests that handled
       (*static_counter)++;
-      requestServeStatic(fd, filename, sbuf.st_size, req, id, static_counter, dynamic_counter, total_counter);
+      requestServeStatic(fd, filename, sbuf.st_size, arrival, dispatch, id, static_counter, dynamic_counter, total_counter);
    } else {
       if (!(S_ISREG(sbuf.st_mode)) || !(S_IXUSR & sbuf.st_mode)) {
          requestError(fd, filename, "403", "Forbidden", "OS-HW3 Server could not run this CGI program");
@@ -215,7 +215,7 @@ void requestHandle(int fd, request* req, int* id, int* static_counter, int* dyna
       }
       // increasing the amount of static requests that handled
        (*dynamic_counter)++;
-      requestServeDynamic(fd, filename, cgiargs, req, id, static_counter, dynamic_counter, total_counter);
+      requestServeDynamic(fd, filename, cgiargs, arrival, dispatch, id, static_counter, dynamic_counter, total_counter);
    }
 }
 
