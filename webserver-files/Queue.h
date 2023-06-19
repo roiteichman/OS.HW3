@@ -69,13 +69,7 @@ void add_to_Queue (Queue* q, request req) {
 request remove_first (Queue* q) {
 #ifdef DEBUG_PRINT
     assert(q->size>0);
-    /*if (q->size==0){
-        printf("\nsize 0!!!\n\n");
-    }*/
 #endif
-//    if (q->size == 0) {
-//        return -1;
-//    }
     node* node_to_remove = q->first;
     request data = node_to_remove->data;
     q->first = node_to_remove->next;
@@ -85,6 +79,50 @@ request remove_first (Queue* q) {
     if (q->last == node_to_remove){
         q->last = NULL;
     }
+    free(node_to_remove);
+    q->size--;
+    return data;
+}
+
+
+request remove_last(Queue* q) {
+#ifdef DEBUG_PRINT
+    assert(q->size>0);
+#endif
+    node* node_to_remove = q->last;
+    request data = node_to_remove->data;
+    q->last = node_to_remove->prev;
+    if (q->last != NULL){
+        q->last->next = NULL;
+    }
+    if (q->first == node_to_remove){
+        q->first = NULL;
+    }
+    free(node_to_remove);
+    q->size--;
+    return data;
+}
+
+
+request remove_rand (Queue* q) {
+#ifdef DEBUG_PRINT
+    assert(q->size>0);
+#endif
+    int index = (rand() % q->size);
+    if (index == 0) {
+        return remove_first(q);
+    }
+    else if (index == q->size-1) {
+        return remove_last(q);
+    }
+    // if the index isn't the first or the last:
+    node* node_to_remove = q->first;
+    for (int i = 0; i < index; i++) {
+        node_to_remove = node_to_remove->next;
+    }
+    request data = node_to_remove->data;
+    node_to_remove->next->prev = node_to_remove->prev;
+    node_to_remove->prev->next = node_to_remove->next;
     free(node_to_remove);
     q->size--;
     return data;

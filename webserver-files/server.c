@@ -103,6 +103,23 @@ request dequeue_request(Queue* queue ,pthread_mutex_t* p_mutex, pthread_cond_t* 
     return res;
 }
 
+
+request dequeue_rand_request(Queue* queue ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond, int is_main_thread){
+    pthread_mutex_lock(p_mutex);
+
+    while (queue->size==0){
+        pthread_cond_wait(p_cond, p_mutex);
+    }
+    request res = remove_rand(queue);
+
+    if ( !is_main_thread ) handled_requests++;
+
+    pthread_mutex_unlock(p_mutex);
+
+    return res;
+}
+
+
 void dec_counter() {
     pthread_mutex_lock(&mutex_request);
     handled_requests--;
@@ -213,7 +230,16 @@ int get_requests_num() {
     return res;
 }
 
-int fictive_handler(){return 0;}
+int get_Queue_size() {
+    pthread_mutex_lock(&mutex_request);
+
+    int res = requests_queue->size;
+
+    pthread_mutex_unlock(&mutex_request);
+
+    return res;
+}
+
 
 int block_handler(Queue* queue, int* queue_size){
     // lock the mutex
@@ -285,16 +311,20 @@ int dynamic(Queue* queue, int* queue_size, int max_size, OVERLOAD_HANDLE* handle
         return drop_tail(curr_request);
     }
 }
+
+
 int drop_random(Queue* queue){
-    /*node* temp = queue->first;
-    while (temp != NULL){
-        if (rand()>0.5){
-
-
-            //request r1 = dequeue_request(queue, &mutex_request, &cond_request, 1);
-        }
-    }*/
+    int num_to_remove = ((get_Queue_size()+1) / 2);
+    for (int i=0; i< num_to_remove; i++) {
+        request r1 = dequeue_rand_request(requests_queue, &mutex_request, &cond_request, 1);
+        // pass 1 in is_main_thread because dont want to ++handle_requests counter because here just drop_head without handle it
+        char buf[MAXBUF];
+        Read(r1.fd, buf, MAXBUF);
+        Close(r1.fd);
+    }
+    return HANDLE_CURRENT;
 }
+
 
 int overload_handler(OVERLOAD_HANDLE* handle_type, Queue* queue, int* queue_size, int max_size, request curr_request) {
     //TODO: call the matching functions (and add cases)
