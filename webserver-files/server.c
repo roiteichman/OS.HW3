@@ -58,6 +58,7 @@ void init_schedalg(char* input_string, OVERLOAD_HANDLE* schedalg) {
     }
 }
 
+
 void getargs(int argc, char *argv[], int *port, int* threads, int* queue_size, OVERLOAD_HANDLE* schedalg, int* max_size)
 {
     if (argc < 5) {
@@ -73,6 +74,7 @@ void getargs(int argc, char *argv[], int *port, int* threads, int* queue_size, O
         *max_size = atoi(argv[5]);
     }
 }
+
 
 /*--------------------------------------------
  queue functions:
@@ -95,22 +97,6 @@ request dequeue_request(Queue* queue ,pthread_mutex_t* p_mutex, pthread_cond_t* 
         pthread_cond_wait(p_cond, p_mutex);
     }
     request res = remove_first(queue);
-
-    if ( !is_main_thread ) handled_requests++;
-
-    pthread_mutex_unlock(p_mutex);
-
-    return res;
-}
-
-
-request dequeue_rand_request(Queue* queue ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond, int is_main_thread){
-    pthread_mutex_lock(p_mutex);
-
-    while (queue->size==0){
-        pthread_cond_wait(p_cond, p_mutex);
-    }
-    request res = remove_rand(queue);
 
     if ( !is_main_thread ) handled_requests++;
 
@@ -230,15 +216,6 @@ int get_requests_num() {
     return res;
 }
 
-int get_Queue_size() {
-    pthread_mutex_lock(&mutex_request);
-
-    int res = requests_queue->size;
-
-    pthread_mutex_unlock(&mutex_request);
-
-    return res;
-}
 
 
 int block_handler(Queue* queue, int* queue_size){
@@ -314,14 +291,17 @@ int dynamic(Queue* queue, int* queue_size, int max_size, OVERLOAD_HANDLE* handle
 
 
 int drop_random(Queue* queue){
-    int num_to_remove = ((get_Queue_size()+1) / 2);
+    pthread_mutex_lock(&mutex_request);
+
+    int num_to_remove = ((requests_queue->size+1) / 2);
     for (int i=0; i< num_to_remove; i++) {
-        request r1 = dequeue_rand_request(requests_queue, &mutex_request, &cond_request, 1);
-        // pass 1 in is_main_thread because dont want to ++handle_requests counter because here just drop_head without handle it
+        request r1 = remove_rand(requests_queue);
         char buf[MAXBUF];
         Read(r1.fd, buf, MAXBUF);
         Close(r1.fd);
     }
+
+    pthread_mutex_unlock(&mutex_request);
     return HANDLE_CURRENT;
 }
 
