@@ -142,7 +142,7 @@ int passTime (struct timeval* t1, struct timeval *result) {
         perror("gettimeofday error:");
         return -1;
     }
-    timersub(t2, &t1, result);
+    timersub(&t2, t1, result);
     return 0;
 }
 
