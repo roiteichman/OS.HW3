@@ -8,6 +8,7 @@
 void requestError(int fd, char *cause, char *errnum, char *shortmsg, char *longmsg, struct timeval* arrival, struct timeval* dispatch,
                   long id, int* static_counter, int* dynamic_counter, int* total_counter)
 {
+
    char buf[MAXLINE], body[MAXBUF];
 
    // Create the body of the error message
@@ -27,27 +28,39 @@ void requestError(int fd, char *cause, char *errnum, char *shortmsg, char *longm
    printf("%s", buf);
 
    sprintf(buf, "Content-Length: %lu\r\n", strlen(body));
+   // following lines may be problematic
+   Rio_writen(fd, buf, strlen(buf));
+   printf("%s", buf);
 
-    sprintf(buf, "%sStat-Req-arrival:: %lu.%06lu\r\n", buf, arrival->tv_sec, arrival->tv_usec);
-    sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, dispatch->tv_sec, dispatch->tv_usec);
-
-    sprintf(buf, "%sStat-Thread-Id:: %ld\r\n", buf, id);
-    sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf ,*total_counter);
-    sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, *static_counter);
-    sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n\r\n", buf, *dynamic_counter);
-
-
-
+   // added
+  /*
+   sprintf(buf, "Stat-Req-Arrival:: %lu.%06lu\r\n", stats->time_req.tv_sec, stats->time_req.tv_usec);
+   if (stats->time_worker.tv_usec < stats->time_req.tv_usec)
+   {
+      sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, stats->time_worker.tv_sec - stats->time_req.tv_sec - 1, 1000000 + stats->time_worker.tv_usec - stats->time_req.tv_usec);
+   }
+   else
+   {
+      sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, stats->time_worker.tv_sec - stats->time_req.tv_sec, stats->time_worker.tv_usec - stats->time_req.tv_usec);
+   }
+   sprintf(buf, "%sStat-Thread-Id:: %d\r\n", buf, stats->thread_num);
+   sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf, stats->counters->general_count);
+   sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, stats->counters->static_count);
+   sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n\r\n", buf, stats->counters->dynamic_count);
+*/
+   sprintf(buf, "%sStat-Req-arrival:: %lu.%06lu\r\n", buf, arrival->tv_sec, arrival->tv_usec);
+   sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, dispatch->tv_sec, dispatch->tv_usec);
+   sprintf(buf, "%sStat-Thread-Id:: %ld\r\n", buf, id);
+   sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf ,*total_counter);
+   sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, *static_counter);
+   sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n\r\n", buf, *dynamic_counter);
    Rio_writen(fd, buf, strlen(buf));
    printf("%s", buf);
 
    // Write out the content
    Rio_writen(fd, body, strlen(body));
-   printf("%s", body);
+   printf("%s",body);
 
-
-
-   //Rio_writen(fd, buf, strlen(buf));
 }
 
 
