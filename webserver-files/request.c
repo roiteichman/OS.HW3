@@ -28,7 +28,7 @@ void requestError(int fd, char *cause, char *errnum, char *shortmsg, char *longm
 
    sprintf(buf, "Content-Length: %lu\r\n", strlen(body));
 
-    sprintf(buf, "%sStat-Req-arrival:: %lu.%06lu\r\n", arrival->tv_sec, arrival->tv_usec);
+    sprintf(buf, "%sStat-Req-arrival:: %lu.%06lu\r\n", buf, arrival->tv_sec, arrival->tv_usec);
     sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, dispatch->tv_sec, dispatch->tv_usec);
 
     sprintf(buf, "%sStat-Thread-Id:: %ld\r\n", buf, id);
