@@ -10,51 +10,36 @@ void requestError(int fd, char *cause, char *errnum, char *shortmsg, char *longm
 {
    char buf[MAXLINE], body[MAXBUF];
 
-
+   // Create the body of the error message
+   sprintf(body, "<html><title>OS-HW3 Error</title>");
+   sprintf(body, "%s<body bgcolor=""fffff"">\r\n", body);
+   sprintf(body, "%s%s: %s\r\n", body, errnum, shortmsg);
+   sprintf(body, "%s<p>%s: %s\r\n", body, longmsg, cause);
+   sprintf(body, "%s<hr>OS-HW3 Web Server\r\n", body);
 
    // Write out the header information for this response
    sprintf(buf, "HTTP/1.0 %s %s\r\n", errnum, shortmsg);
    Rio_writen(fd, buf, strlen(buf));
-   //printf("%s", buf);
+   printf("%s", buf);
 
    sprintf(buf, "Content-Type: text/html\r\n");
    Rio_writen(fd, buf, strlen(buf));
-   //printf("%s", buf);
+   printf("%s", buf);
 
    sprintf(buf, "Content-Length: %lu\r\n", strlen(body));
-   Rio_writen(fd, buf, strlen(buf));
-   //printf("%s", buf);
 
-   sprintf(buf, "Stat-Req-arrival:: %lu.%06lu\r\n", arrival->tv_sec, arrival->tv_usec);
-   Rio_writen(fd, buf, strlen(buf));
-   //printf("%s", buf);
+    sprintf(buf, "%sStat-Req-arrival:: %lu.%06lu\r\n", buf, arrival->tv_sec, arrival->tv_usec);
+    sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, dispatch->tv_sec, dispatch->tv_usec);
 
-   sprintf(buf, "Stat-Req-Dispatch:: %lu.%06lu\r\n", dispatch->tv_sec, dispatch->tv_usec);
-   Rio_writen(fd, buf, strlen(buf));
-   //printf("%s", buf);
+    sprintf(buf, "%sStat-Thread-Id:: %ld\r\n", buf, id);
+    sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf ,*total_counter);
+    sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, *static_counter);
+    sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n\r\n", buf, *dynamic_counter);
 
-   sprintf(buf, "Stat-Thread-Id:: %ld\r\n", id);
-   Rio_writen(fd, buf, strlen(buf));
-   //printf("%s", buf);
 
-   sprintf(buf, "Stat-Thread-Count:: %d\r\n", *total_counter);
-   Rio_writen(fd, buf, strlen(buf));
-   //printf("%s", buf);
 
-   sprintf(buf, "Stat-Thread-Static:: %d\r\n", *static_counter);
    Rio_writen(fd, buf, strlen(buf));
-   //printf("%s", buf);
-
-   sprintf(buf, "Stat-Thread-Dynamic:: %d\r\n\r\n", *dynamic_counter);
-   Rio_writen(fd, buf, strlen(buf));
-   //printf("%s", buf);
-
-    // Create the body of the error message
-    sprintf(body, "<html><title>OS-HW3 Error</title>");
-    sprintf(body, "%s<body bgcolor=""fffff"">\r\n", body);
-    sprintf(body, "%s%s: %s\r\n", body, errnum, shortmsg);
-    sprintf(body, "%s<p>%s: %s\r\n", body, longmsg, cause);
-    sprintf(body, "%s<hr>OS-HW3 Web Server\r\n", body);
+   printf("%s", buf);
 
    // Write out the content
    Rio_writen(fd, body, strlen(body));
