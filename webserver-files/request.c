@@ -20,39 +20,39 @@ void requestError(int fd, char *cause, char *errnum, char *shortmsg, char *longm
    // Write out the header information for this response
    sprintf(buf, "HTTP/1.0 %s %s\r\n", errnum, shortmsg);
    Rio_writen(fd, buf, strlen(buf));
-   printf("%s", buf);
+   //printf("%s", buf);
 
    sprintf(buf, "Content-Type: text/html\r\n");
    Rio_writen(fd, buf, strlen(buf));
-   printf("%s", buf);
+   //printf("%s", buf);
 
    sprintf(buf, "Content-Length: %lu\r\n", strlen(body));
    Rio_writen(fd, buf, strlen(buf));
-   printf("%s", buf);
+   //printf("%s", buf);
 
    sprintf(buf, "Stat-Req-arrival:: %lu.%06lu\r\n", arrival->tv_sec, arrival->tv_usec);
    Rio_writen(fd, buf, strlen(buf));
-   printf("%s", buf);
+   //printf("%s", buf);
 
    sprintf(buf, "Stat-Req-Dispatch:: %lu.%06lu\r\n", dispatch->tv_sec, dispatch->tv_usec);
    Rio_writen(fd, buf, strlen(buf));
-   printf("%s", buf);
+   //printf("%s", buf);
 
    sprintf(buf, "Stat-Thread-Id:: %ld\r\n", id);
    Rio_writen(fd, buf, strlen(buf));
-   printf("%s", buf);
+   //printf("%s", buf);
 
    sprintf(buf, "Stat-Thread-Count:: %d\r\n", *total_counter);
    Rio_writen(fd, buf, strlen(buf));
-   printf("%s", buf);
+   //printf("%s", buf);
 
    sprintf(buf, "Stat-Thread-Static:: %d\r\n", *static_counter);
    Rio_writen(fd, buf, strlen(buf));
-   printf("%s", buf);
+   //printf("%s", buf);
 
    sprintf(buf, "Stat-Thread-Dynamic:: %d\r\n\r\n", *dynamic_counter);
    Rio_writen(fd, buf, strlen(buf));
-   printf("%s", buf);
+   //printf("%s", buf);
 
    // Write out the content
    Rio_writen(fd, body, strlen(body));
