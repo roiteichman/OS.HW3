@@ -10,12 +10,7 @@ void requestError(int fd, char *cause, char *errnum, char *shortmsg, char *longm
 {
    char buf[MAXLINE], body[MAXBUF];
 
-   // Create the body of the error message
-   sprintf(body, "<html><title>OS-HW3 Error</title>");
-   sprintf(body, "%s<body bgcolor=""fffff"">\r\n", body);
-   sprintf(body, "%s%s: %s\r\n", body, errnum, shortmsg);
-   sprintf(body, "%s<p>%s: %s\r\n", body, longmsg, cause);
-   sprintf(body, "%s<hr>OS-HW3 Web Server\r\n", body);
+
 
    // Write out the header information for this response
    sprintf(buf, "HTTP/1.0 %s %s\r\n", errnum, shortmsg);
@@ -53,6 +48,13 @@ void requestError(int fd, char *cause, char *errnum, char *shortmsg, char *longm
    sprintf(buf, "Stat-Thread-Dynamic:: %d\r\n\r\n", *dynamic_counter);
    Rio_writen(fd, buf, strlen(buf));
    //printf("%s", buf);
+
+    // Create the body of the error message
+    sprintf(body, "<html><title>OS-HW3 Error</title>");
+    sprintf(body, "%s<body bgcolor=""fffff"">\r\n", body);
+    sprintf(body, "%s%s: %s\r\n", body, errnum, shortmsg);
+    sprintf(body, "%s<p>%s: %s\r\n", body, longmsg, cause);
+    sprintf(body, "%s<hr>OS-HW3 Web Server\r\n", body);
 
    // Write out the content
    Rio_writen(fd, body, strlen(body));
