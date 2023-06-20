@@ -16,7 +16,7 @@ void requestError(int fd, char *cause, char *errnum, char *shortmsg, char *longm
    sprintf(body, "%s<body bgcolor=""fffff"">\r\n", body);
    sprintf(body, "%s%s: %s\r\n", body, errnum, shortmsg);
    sprintf(body, "%s<p>%s: %s\r\n", body, longmsg, cause);
-   sprintf(body, "%s<hr>OS-HW3 Web Server\r\n", body);
+   sprintf(body, "%s<hr>OS-HW3 Web Server\r\n\r\n", body);
 
    // Write out the header information for this response
    sprintf(buf, "HTTP/1.0 %s %s\r\n", errnum, shortmsg);
@@ -53,7 +53,7 @@ void requestError(int fd, char *cause, char *errnum, char *shortmsg, char *longm
    sprintf(buf, "%sStat-Thread-Id:: %ld\r\n", buf, id);
    sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf ,*total_counter);
    sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, *static_counter);
-   sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n", buf, *dynamic_counter);
+   sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n\r\n", buf, *dynamic_counter);
    Rio_writen(fd, buf, strlen(buf));
    printf("%s", buf);
 
