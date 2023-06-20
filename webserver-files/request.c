@@ -30,7 +30,7 @@ void requestError(int fd, char *cause, char *errnum, char *shortmsg, char *longm
    Rio_writen(fd, buf, strlen(buf));
    printf("%s", buf);
 
-   sprintf(buf, "%Stat-Req-arrival:: %lu.%06lu\r\n", arrival->tv_sec, arrival->tv_usec);
+   sprintf(buf, "Stat-Req-arrival:: %lu.%06lu\r\n", arrival->tv_sec, arrival->tv_usec);
    Rio_writen(fd, buf, strlen(buf));
    printf("%s", buf);
 
@@ -38,19 +38,19 @@ void requestError(int fd, char *cause, char *errnum, char *shortmsg, char *longm
    Rio_writen(fd, buf, strlen(buf));
    printf("%s", buf);
 
-   sprintf(buf, "%sStat-Thread-Id:: %ld\r\n", id);
+   sprintf(buf, "Stat-Thread-Id:: %ld\r\n", id);
    Rio_writen(fd, buf, strlen(buf));
    printf("%s", buf);
 
-   sprintf(buf, "%sStat-Thread-Count:: %d\r\n", *total_counter);
+   sprintf(buf, "Stat-Thread-Count:: %d\r\n", *total_counter);
    Rio_writen(fd, buf, strlen(buf));
    printf("%s", buf);
 
-   sprintf(buf, "%sStat-Thread-Static:: %d\r\n", *static_counter);
+   sprintf(buf, "Stat-Thread-Static:: %d\r\n", *static_counter);
    Rio_writen(fd, buf, strlen(buf));
    printf("%s", buf);
 
-   sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n\r\n", *dynamic_counter);
+   sprintf(buf, "Stat-Thread-Dynamic:: %d\r\n\r\n", *dynamic_counter);
    Rio_writen(fd, buf, strlen(buf));
    printf("%s", buf);
 
