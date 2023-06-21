@@ -33,78 +33,12 @@ void requestError(int fd, char *cause, char *errnum, char *shortmsg, char *longm
     printf("%s", buf);
 
 
-/*
-    // Write out the header information for this response
-   sprintf(buf, "HTTP/1.0 %s %s\r\n", errnum, shortmsg);
-   Rio_writen(fd, buf, strlen(buf));
-   printf("%s", buf);
-
-   sprintf(buf, "Content-Type: text/html\r\n");
-   Rio_writen(fd, buf, strlen(buf));
-   printf("%s", buf);
-
-   sprintf(buf, "Content-Length: %lu\r\n", strlen(body));
-   // following lines may be problematic
-   Rio_writen(fd, buf, strlen(buf));
-   printf("%s", buf);
-*/
-  /*
-   void requestError(int fd, char *cause, char *errnum, char *shortmsg, char *longmsg, struct stats *stats)
-{
-   char buf[MAXLINE], body[MAXBUF];
-
-   // Create the body of the error message
-   sprintf(body, "<html><title>OS-HW3 Error</title>");
-   sprintf(body, "%s<body bgcolor="
-                 "fffff"
-                 ">\r\n",
-           body);
-   sprintf(body, "%s%s: %s\r\n", body, errnum, shortmsg);
-   sprintf(body, "%s<p>%s: %s\r\n", body, longmsg, cause);
-   sprintf(body, "%s<hr>OS-HW3 Web Server\r\n", body);
-
-   // Write out the header information for this response
-   sprintf(buf, "HTTP/1.0 %s %s\r\n", errnum, shortmsg);
-   Rio_writen(fd, buf, strlen(buf));
-   printf("%s", buf);
-
-   sprintf(buf, "Content-Type: text/html\r\n");
-   Rio_writen(fd, buf, strlen(buf));
-   printf("%s", buf);
-
-   sprintf(buf, "Content-Length: %lu\r\n", strlen(body));
-   // following lines may be problematic
-   Rio_writen(fd, buf, strlen(buf));
-   printf("%s", buf);
-
-   // added
-   sprintf(buf, "Stat-Req-Arrival:: %lu.%06lu\r\n", stats->time_req.tv_sec, stats->time_req.tv_usec);
-   if (stats->time_worker.tv_usec < stats->time_req.tv_usec)
-   {
-      sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, stats->time_worker.tv_sec - stats->time_req.tv_sec - 1, 1000000 + stats->time_worker.tv_usec - stats->time_req.tv_usec);
-   }
-   else
-   {
-      sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, stats->time_worker.tv_sec - stats->time_req.tv_sec, stats->time_worker.tv_usec - stats->time_req.tv_usec);
-   }
-   sprintf(buf, "%sStat-Thread-Id:: %d\r\n", buf, stats->thread_num);
-   sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf, stats->counters->general_count);
-   sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, stats->counters->static_count);
-   sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n\r\n", buf, stats->counters->dynamic_count);
-   Rio_writen(fd, buf, strlen(buf));
-   printf("%s", buf);
-
-   // Write out the content
-   Rio_writen(fd, body, strlen(body));
-   printf("%s", body);
-}
-*/
    sprintf(buf, "Stat-Req-arrival:: %lu.%06lu\r\n", arrival->tv_sec, arrival->tv_usec);
    sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, dispatch->tv_sec, dispatch->tv_usec);
    sprintf(buf, "%sStat-Thread-Id:: %ld\r\n", buf, id);
    sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf ,*total_counter);
    sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, *static_counter);
-   sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n\r\n", buf, *dynamic_counter);
+   sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n", buf, *dynamic_counter);
    Rio_writen(fd, buf, strlen(buf));
    printf("%s", buf);
 
@@ -197,7 +131,7 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, struct timeval* 
     sprintf(buf, "%sStat-Thread-Id:: %ld\r\n", buf, id);
     sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf ,*total_counter);
     sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, *static_counter);
-    sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n\r\n", buf, *dynamic_counter);
+    sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n", buf, *dynamic_counter);
 
     Rio_writen(fd, buf, strlen(buf));
 
@@ -240,7 +174,7 @@ void requestServeStatic(int fd, char *filename, int filesize, struct timeval* ar
    sprintf(buf, "%sStat-Thread-Id:: %ld\r\n", buf, id);
    sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf ,*total_counter);
    sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, *static_counter);
-   sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n\r\n", buf, *dynamic_counter);
+   sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n", buf, *dynamic_counter);
 
    Rio_writen(fd, buf, strlen(buf));
 
