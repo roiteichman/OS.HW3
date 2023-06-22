@@ -27,6 +27,7 @@
 
 // TODO: delete asserts and remove define
 #include <assert.h>
+#define NDEBUG
 //#define DEBUG_PRINT
 
 /* Default file permissions are DEF_MODE & ~DEF_UMASK */

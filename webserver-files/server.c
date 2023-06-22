@@ -73,6 +73,9 @@ void getargs(int argc, char *argv[], int *port, int* threads, int* queue_size, O
     if (argc==6 && *schedalg == DYNAMIC) {
         *max_size = atoi(argv[5]);
     }
+    if (*threads >= *queue_size && (*schedalg == DROP_HEAD || *schedalg == DROP_RANDOM)) {
+        *schedalg = BLOCK;
+    }
 }
 
 
