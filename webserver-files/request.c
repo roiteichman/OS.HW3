@@ -144,7 +144,9 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, struct timeval* 
       Dup2(fd, STDOUT_FILENO);
       Execve(filename, emptylist, environ);
    }
-   WaitPid(pid, NULL, 0); //TODO: i change to Waitpid because it gonna help us in the tests
+   if (pid >0){
+       WaitPid(pid, NULL, 0); //TODO: i change to Waitpid because it gonna help us in the tests
+   }
 }
 
 
