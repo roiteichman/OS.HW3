@@ -161,14 +161,12 @@ void* thread_job(void* thread_id){
         // like dequeue in tutorial
         request curr_req = dequeue_request(requests_queue, &mutex_request, &cond_request, 0);
         passTime (&curr_req.arrival, &curr_req.dispatch);
-        total_counter++;
 
         // TODO: add and remove from the other list?
         // like enqueue in tutorial
         //add_to_list(handled_queue ,socket_fd);
 
         requestHandle(curr_req.fd, &(curr_req.arrival), &(curr_req.dispatch), id, &static_counter, &dynamic_counter, &total_counter);
-        printf("\n\n===============================================================\nall: %d\ndynamic: %d\nstatic: %d\n\n===============================================================\n", total_counter, dynamic_counter, static_counter);
 
         //request* req, int* id, int* static_counter, int* dynamic_counter, int* total_counter
 
