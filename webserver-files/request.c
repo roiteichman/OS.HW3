@@ -131,12 +131,7 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, struct timeval* 
     sprintf(buf, "%sStat-Thread-Id:: %ld\r\n", buf, id);
     sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf ,*total_counter);
     sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, *static_counter);
-    sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n", buf, *dynamic_counter);
-
-    //Rio_writen(fd, buf, strlen(buf));
-
-    //sprintf(buf, "%sContent-Length: %lu\r\n", buf, strlen(buf));
-    //sprintf(buf, "%sContent-Type: text/html\r\n", buf);
+    sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n\r\n", buf, *dynamic_counter);
 
     Rio_writen(fd, buf, strlen(buf));
 
