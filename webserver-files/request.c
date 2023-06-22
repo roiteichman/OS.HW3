@@ -33,7 +33,7 @@ void requestError(int fd, char *cause, char *errnum, char *shortmsg, char *longm
     printf("%s", buf);
 
 
-   sprintf(buf, "Stat-Req-arrival:: %lu.%06lu\r\n", arrival->tv_sec, arrival->tv_usec);
+   sprintf(buf, "Stat-Req-Arrival:: %lu.%06lu\r\n", arrival->tv_sec, arrival->tv_usec);
    sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, dispatch->tv_sec, dispatch->tv_usec);
    sprintf(buf, "%sStat-Thread-Id:: %ld\r\n", buf, id);
    sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf ,*total_counter);
@@ -125,7 +125,7 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, struct timeval* 
 
    Rio_writen(fd, buf, strlen(buf));
 
-    sprintf(buf, "Stat-Req-arrival:: %lu.%06lu\r\n", arrival->tv_sec, arrival->tv_usec);
+    sprintf(buf, "Stat-Req-Arrival:: %lu.%06lu\r\n", arrival->tv_sec, arrival->tv_usec);
     sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, dispatch->tv_sec, dispatch->tv_usec);
 
     sprintf(buf, "%sStat-Thread-Id:: %ld\r\n", buf, id);
@@ -168,7 +168,7 @@ void requestServeStatic(int fd, char *filename, int filesize, struct timeval* ar
    sprintf(buf, "%sContent-Length: %d\r\n", buf, filesize);
    sprintf(buf, "%sContent-Type: %s\r\n", buf, filetype);
 
-   sprintf(buf, "%sStat-Req-arrival:: %lu.%06lu\r\n", buf, arrival->tv_sec, arrival->tv_usec);
+   sprintf(buf, "%sStat-Req-Arrival:: %lu.%06lu\r\n", buf, arrival->tv_sec, arrival->tv_usec);
    sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, dispatch->tv_sec, dispatch->tv_usec);
 
    sprintf(buf, "%sStat-Thread-Id:: %ld\r\n", buf, id);
