@@ -135,8 +135,8 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, struct timeval* 
 
     //Rio_writen(fd, buf, strlen(buf));
 
-    sprintf(buf, "%sContent-Length: %lu\r\n", buf, strlen(buf));
-    sprintf(buf, "%sContent-Type: text/html\r\n", buf);
+    //sprintf(buf, "%sContent-Length: %lu\r\n", buf, strlen(buf));
+    //sprintf(buf, "%sContent-Type: text/html\r\n", buf);
 
     Rio_writen(fd, buf, strlen(buf));
 
