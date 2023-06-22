@@ -168,6 +168,8 @@ void* thread_job(void* thread_id){
         //add_to_list(handled_queue ,socket_fd);
 
         requestHandle(curr_req.fd, &(curr_req.arrival), &(curr_req.dispatch), id, &static_counter, &dynamic_counter, &total_counter);
+        printf("\n\n===============================================================\nall: %d\ndynamic: %d\nstatic: %d\n\n===============================================================\n", total_counter, dynamic_counter, static_counter);
+
         //request* req, int* id, int* static_counter, int* dynamic_counter, int* total_counter
 
         dec_counter();
