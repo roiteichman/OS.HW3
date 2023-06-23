@@ -37,11 +37,26 @@ typedef enum  {BLOCK, DROP_TAIL, DROP_HEAD,
 void init_args(){
     requests_queue = create_Queue();
     //handled_queue = create_list();
-    pthread_mutex_init(&mutex_request, NULL);
-    pthread_mutex_init(&mutex_handled, NULL);
-    pthread_cond_init(&cond_request, NULL);
-    pthread_cond_init(&cond_handled, NULL);
-    pthread_cond_init(&cond_list_full, NULL);
+    if (pthread_mutex_init(&mutex_request, NULL) != 0) {
+        perror ("pthread_mutex_init:");
+        exit(1);
+    }
+    if (pthread_mutex_init(&mutex_handled, NULL) != 0) {
+        perror ("pthread_mutex_init:");
+        exit(1);
+    }
+    if (pthread_cond_init(&cond_request, NULL) != 0) {
+        perror ("pthread_mutex_init:");
+        exit(1);
+    }
+    if (pthread_cond_init(&cond_handled, NULL) != 0) {
+        perror ("pthread_mutex_init:");
+        exit(1);
+    }
+    if (pthread_cond_init(&cond_list_full, NULL) != 0) {
+        perror ("pthread_mutex_init:");
+        exit(1);
+    }
 }
 
 void init_schedalg(char* input_string, OVERLOAD_HANDLE* schedalg) {
@@ -61,9 +76,8 @@ void init_schedalg(char* input_string, OVERLOAD_HANDLE* schedalg) {
 
 void getargs(int argc, char *argv[], int *port, int* threads, int* queue_size, OVERLOAD_HANDLE* schedalg, int* max_size)
 {
-    if (argc < 5) {
-	    fprintf(stderr, "Usage: %s <port>\n", argv[0]);
-        // TODO: what to print here in error handling
+    if (argc < 5 || argc > 6) {
+	    fprintf(stderr, "Usage: %s <port> <threads_num> <requests_num> <schedalg>\n", argv[0]);
 	    exit(1);
     }
     *port = atoi(argv[1]);
@@ -76,6 +90,9 @@ void getargs(int argc, char *argv[], int *port, int* threads, int* queue_size, O
     if (*threads >= *queue_size && (*schedalg == DROP_HEAD || *schedalg == DROP_RANDOM)) {
         *schedalg = DROP_TAIL;
     }
+    if ((argc == 5 && *schedalg == DYNAMIC) || (argc == 6 && *schedalg != DYNAMIC)) {
+        fprintf(stderr, "Usage: %s <port> <threads_num> <requests_num> <schedalg>\n", argv[0]);
+    }
 }
 
 
@@ -85,39 +102,65 @@ void getargs(int argc, char *argv[], int *port, int* threads, int* queue_size, O
 
 
 void enqueue_request(Queue* queue, request req ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond){
-    pthread_mutex_lock(p_mutex);
+    if (pthread_mutex_lock(p_mutex) != 0) {
+        perror("pthread_mutex_lock: ");
+        exit(1);
+    }
 
     add_to_Queue(queue, req);
-    pthread_cond_signal(p_cond);
+    if (pthread_cond_signal(p_cond) != 0){
+        perror("pthread_mutex_signal: ");
+        exit(1);
+    }
 
-    pthread_mutex_unlock(p_mutex);
+    if (pthread_mutex_unlock(p_mutex) != 0){
+        perror("pthread_mutex_unlock: ");
+        exit(1);
+    }
 }
 
 request dequeue_request(Queue* queue ,pthread_mutex_t* p_mutex, pthread_cond_t* p_cond, int is_main_thread){
-    pthread_mutex_lock(p_mutex);
+    if (pthread_mutex_lock(p_mutex) != 0) {
+        perror("pthread_mutex_lock: ");
+        exit(1);
+    }
 
     while (queue->size==0){
-        pthread_cond_wait(p_cond, p_mutex);
+        if (pthread_cond_wait(p_cond, p_mutex) != 0) {
+            perror("pthread_cond_wait: ");
+            exit(1);
+        }
     }
     request res = remove_first(queue);
 
     if ( !is_main_thread ) handled_requests++;
 
-    pthread_mutex_unlock(p_mutex);
+    if (pthread_mutex_unlock(p_mutex) != 0) {
+        perror("pthread_mutex_unlock: ");
+        exit(1);
+    }
 
     return res;
 }
 
 
 void dec_counter() {
-    pthread_mutex_lock(&mutex_request);
+    if (pthread_mutex_lock(&mutex_request) != 0){
+        perror("pthread_mutex_lock: ");
+        exit(1);
+    }
     handled_requests--;
 
-    //TODO: make here if size == full or send everytime?
-    pthread_cond_signal(&cond_list_full);
+    if (pthread_cond_signal(&cond_list_full) != 0) {
+        perror("pthread_cond_signal: ");
+        exit(1);
+    }
 
     //pthread_cond_signal(&cond_handled);
-    pthread_mutex_unlock(&mutex_request);
+    if (pthread_mutex_unlock(&mutex_request) != 0) {
+        perror("pthread_mutex_unlock: ");
+        exit(1);
+    }
 }
 
 /*-----------------------------------
@@ -141,7 +184,6 @@ void show_statistic(int id, int static_counter, int dynamic_counter, int total_c
 int passTime (struct timeval* t1, struct timeval *result) {
     struct timeval t2;
     if (gettimeofday(&t2, NULL) == -1) {
-        // TODO: error format
         perror("gettimeofday error:");
         return -1;
     }
@@ -165,20 +207,10 @@ void* thread_job(void* thread_id){
         request curr_req = dequeue_request(requests_queue, &mutex_request, &cond_request, 0);
         passTime (&curr_req.arrival, &curr_req.dispatch);
 
-        // TODO: add and remove from the other list?
-        // like enqueue in tutorial
-        //add_to_list(handled_queue ,socket_fd);
-
         requestHandle(curr_req.fd, &(curr_req.arrival), &(curr_req.dispatch), id, &static_counter, &dynamic_counter, &total_counter);
-
-        //request* req, int* id, int* static_counter, int* dynamic_counter, int* total_counter
 
         dec_counter();
 
-        // statistics:
-        //show_statistic(id, static_counter, dynamic_counter, total_counter, curr_req);
-
-        // TODO: do we need to put mutex on close because after a lot of request we get Rio_readlineb error and one of the options is the open and close mechanism
         Close(curr_req.fd);
 
     }
@@ -193,7 +225,10 @@ int create_threads (int num_threads){
         return -1;
     }
     for (long i = 0; i < num_threads; ++i) {
-        pthread_create(&threads[i], NULL, thread_job, (void *) i);
+        if (pthread_create(&threads[i], NULL, thread_job, (void *) i) != 0) {
+            perror ("pthread_create:");
+            exit(1);
+        }
     }
     return 0;
 }
@@ -206,12 +241,18 @@ int create_threads (int num_threads){
 int get_requests_num() {
     int res = 0;
 
-    pthread_mutex_lock(&mutex_request);
+    if (pthread_mutex_lock(&mutex_request) != 0) {
+        perror ("pthread_mutex_lock:");
+        exit(1);
+    }
 
     res += requests_queue->size;
     res += handled_requests;
 
-    pthread_mutex_unlock(&mutex_request);
+    if (pthread_mutex_unlock(&mutex_request) != 0) {
+        perror ("pthread_mutex_unlock:");
+        exit(1);
+    }
 
     return res;
 }
@@ -220,24 +261,42 @@ int get_requests_num() {
 
 int block_handler(Queue* queue, int* queue_size){
     // lock the mutex
-    pthread_mutex_lock(&mutex_request);
+    if (pthread_mutex_lock(&mutex_request) != 0) {
+        perror ("pthread_mutex_lock:");
+        exit(1);
+    }
     // enter the main thread to wait by cond_wait
     while (queue->size + handled_requests >= *queue_size){
-        pthread_cond_wait(&cond_list_full, &mutex_request);
+        if (pthread_cond_wait(&cond_list_full, &mutex_request) != 0) {
+            perror ("pthread_cond_wait:");
+            exit(1);
+        }
     }
-    pthread_mutex_unlock(&mutex_request);
+    if (pthread_mutex_unlock(&mutex_request) != 0) {
+        perror ("pthread_mutex_unlock:");
+        exit(1);
+    }
 
     return HANDLE_CURRENT;
 }
 
 int block_flush_handler(Queue* queue){
     // lock the mutex
-    pthread_mutex_lock(&mutex_request);
+    if (pthread_mutex_lock(&mutex_request) != 0) {
+        perror ("pthread_mutex_lock:");
+        exit(1);
+    }
     // enter the main thread to wait by cond_wait
     while (queue->size + handled_requests > 0){
-        pthread_cond_wait(&cond_list_full, &mutex_request);
+        if (pthread_cond_wait(&cond_list_full, &mutex_request) != 0){
+            perror ("pthread_cond_wait:");
+            exit(1);
+        }
     }
-    pthread_mutex_unlock(&mutex_request);
+    if (pthread_mutex_unlock(&mutex_request) != 0) {
+        perror ("pthread_mutex_unlock:");
+        exit(1);
+    }
 
     return SKIP_CURRENT;
 }
@@ -280,7 +339,6 @@ int dynamic(Queue* queue, int* queue_size, int max_size, OVERLOAD_HANDLE* handle
         char buf[MAXBUF];
         Read(curr_request.fd, buf, MAXBUF);
         Close(curr_request.fd);
-        // TODO: is needed Mutex here on ++ ?
         (*queue_size)++;
 #ifdef DEBUG_PRINT
         printf("\nqueue_size_new = %d\n\n", *queue_size);
@@ -298,7 +356,10 @@ int dynamic(Queue* queue, int* queue_size, int max_size, OVERLOAD_HANDLE* handle
 
 
 int drop_random(Queue* queue){
-    pthread_mutex_lock(&mutex_request);
+    if (pthread_mutex_lock(&mutex_request) != 0){
+        perror ("pthread_mutex_lock:");
+        exit(1);
+    }
 
     int num_to_remove = ((requests_queue->size+1) / 2);
     for (int i=0; i< num_to_remove; i++) {
@@ -308,13 +369,15 @@ int drop_random(Queue* queue){
         Close(r1.fd);
     }
 
-    pthread_mutex_unlock(&mutex_request);
+    if (pthread_mutex_unlock(&mutex_request) != 0){
+        perror ("pthread_mutex_unlock:");
+        exit(1);
+    }
     return HANDLE_CURRENT;
 }
 
 
 int overload_handler(OVERLOAD_HANDLE* handle_type, Queue* queue, int* queue_size, int max_size, request curr_request) {
-    //TODO: call the matching functions (and add cases)
     switch (*handle_type) {
         case BLOCK: return block_handler(queue, queue_size);
         case BLOCK_FLUSH: return block_flush_handler(queue);
@@ -332,16 +395,6 @@ int overload_handler(OVERLOAD_HANDLE* handle_type, Queue* queue, int* queue_size
     }
 }
 
-// if we have to skip the current request return 1.
-// if we have to handle it after the overloading handle, return 0.
-
-// TODO: block with new cond (in same mutex), when thread finish handle request, signal for the cond, inside the function that --counter;
-// TODO: drop_tail - close the new fd that created in accept, give the function the fd of request
-// TODO: drop_head - do dequeue to the list
-// TODO: block_fluse - like block maybe another cond for empty list;
-// TODO: Dynamic - increase queue_size by 1 until become equal to max_size, then assignment of dynamic to drop_tail and call the handler again in this specific case
-
-// TODO: check if lonely request in queue - edge case
 
 /*------------------------------------------------------------------------------
  main program:
@@ -366,13 +419,12 @@ int main(int argc, char *argv[])
 
     while (1) {
         clientlen = sizeof(clientaddr);
+        struct timeval arrival;
         connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen);
 #ifdef DEBUG_PRINT
         printf("\nnew fd is: %d\n\n", connfd);
 #endif
-        struct timeval arrival;
         if (gettimeofday(&arrival, NULL) == -1) {
-            // TODO: error format
             perror("gettimeofday error:");
         }
         request curr_req = {connfd, arrival, arrival};
@@ -404,8 +456,5 @@ int main(int argc, char *argv[])
     //don't need to free because run forever
 }
 
-
-    
-// TODO: check systems calls if fails
 
  
