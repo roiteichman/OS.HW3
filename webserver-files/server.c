@@ -74,7 +74,7 @@ void getargs(int argc, char *argv[], int *port, int* threads, int* queue_size, O
         *max_size = atoi(argv[5]);
     }
     if (*threads >= *queue_size && (*schedalg == DROP_HEAD || *schedalg == DROP_RANDOM)) {
-        *schedalg = BLOCK;
+        *schedalg = DROP_TAIL;
     }
 }
 
