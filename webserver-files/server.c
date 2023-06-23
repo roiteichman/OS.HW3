@@ -280,7 +280,7 @@ int block_handler(Queue* queue, int* queue_size){
     return HANDLE_CURRENT;
 }
 
-int block_flush_handler(Queue* queue){
+int block_flush_handler(Queue* queue, request curr){
     // lock the mutex
     if (pthread_mutex_lock(&mutex_request) != 0) {
         perror ("pthread_mutex_lock:");
@@ -297,7 +297,9 @@ int block_flush_handler(Queue* queue){
         perror ("pthread_mutex_unlock:");
         exit(1);
     }
-
+    char buf[MAXBUF];
+    Read(curr.fd, buf, MAXBUF);
+    Close(curr.fd);
     return SKIP_CURRENT;
 }
 
@@ -380,7 +382,7 @@ int drop_random(Queue* queue){
 int overload_handler(OVERLOAD_HANDLE* handle_type, Queue* queue, int* queue_size, int max_size, request curr_request) {
     switch (*handle_type) {
         case BLOCK: return block_handler(queue, queue_size);
-        case BLOCK_FLUSH: return block_flush_handler(queue);
+        case BLOCK_FLUSH: return block_flush_handler(queue, curr_request);
         case DROP_TAIL: return drop_tail(curr_request);
         case DROP_HEAD: return drop_head();
         case DYNAMIC: return dynamic(queue, queue_size, max_size, handle_type, curr_request);
