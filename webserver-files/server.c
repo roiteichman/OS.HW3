@@ -163,23 +163,6 @@ void dec_counter() {
     }
 }
 
-/*-----------------------------------
- statistic functions:
- -----------------------------------*/
-/*
-void show_statistic(int id, int static_counter, int dynamic_counter, int total_counter, request req){
-    char buf[MAXBUF];
-    sprintf(buf, "Stat-Req-arrival:: %lu.%06lu\r\n", req.arrival.tv_sec, req.arrival.tv_usec);
-    sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, req.dispatch.tv_sec, req.dispatch.tv_usec);
-
-    sprintf(buf, "%sStat-Thread-Id:: %d\r\n", buf, id);
-    sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf ,total_counter);
-    sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, static_counter);
-    sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n", buf, dynamic_counter);
-    Rio_writen(req.fd, buf, strlen(buf));
-}
-*/
-
 // needed t2 > t1
 int passTime (struct timeval* t1, struct timeval *result) {
     struct timeval t2;
